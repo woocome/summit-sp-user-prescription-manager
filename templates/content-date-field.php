@@ -1,0 +1,1 @@
+<input class="date input prescription-end-date prescription-field" type="date" id="prescription-end-date-<?php echo $args['entry_id']; ?>"  required />
