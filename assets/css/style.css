@@ -26,6 +26,9 @@
     width: 100%;
     display: flex;
     justify-content: space-between;
+    flex-direction: row;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .treatments-wrapper .approved-treatments-wrapper {

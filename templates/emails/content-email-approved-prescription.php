@@ -26,7 +26,7 @@
         <p><strong style="color: #C41E3A;">Order Process:</strong></p>
         <ul>
             <li>Log in to your Summit account profile page</li>
-            <li>Select your preferred subscription plan</li>
+            <li>Choose your preferred subscription plan or make a one-time purchase for your medication.</li>
             <li>Checkout Pay</li>
             <li>Expect delivery within 2-3 business days</li>
         </ul>
