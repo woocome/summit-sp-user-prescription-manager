@@ -689,12 +689,13 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
         foreach ($order->get_items() as $item) {
             $product_id = $item->get_product_id();
+            $top_up_product = get_field('select_top_up_product', $product_id);
 
             foreach ($prescribed_treatments as $treatment) {
                 $treatment_product_id = absint($treatment['prescribed_medication']);
                 $treatment_category = $treatment['prescribed_categories'];
 
-                if ($product_id == $treatment_product_id && $treatment_category) {
+                if (($product_id == $treatment_product_id || $top_up_product->ID == $treatment_product_id) && $treatment_category) {
                     return $treatment;
                 }
             }

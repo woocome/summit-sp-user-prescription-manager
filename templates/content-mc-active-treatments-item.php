@@ -1,6 +1,6 @@
 <?php
     $product_category = $args['prescribed_categories'];
-    $active_until_date = $args['active_date'];
+    $active_until_date = date("M. d, Y", strtotime($args['active_date']));
     $mc_prescriptions = get_field('mc_prescriptions', 'user_' . get_current_user_id());
     $panel_card_info = get_field('my_account_card_tagline', 'product_cat_' . $product_category->term_id);
     $custom_redirect = get_term_meta($product_category->term_id, 'buy_now_redirection_url', true);
@@ -26,7 +26,7 @@
                 </div>
                 <div class="at-active-date">
                     <div class="active-date-wrapper">
-                        <p><span>Active Until Date:</span> <?= $active_until_date; ?></p>
+                        <p><span>Active Until:</span> <?= $active_until_date; ?></p>
                     </div>
                 </div>
             </div>

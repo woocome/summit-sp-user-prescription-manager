@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'SP_USER_PRESCRIPTION_MANAGER_VERSION', '1.0.7' );
+define( 'SP_USER_PRESCRIPTION_MANAGER_VERSION', '1.1.0' );
 define( 'SP_USER_PRESCRIPTION_MANAGER_NAME', 'sp-user-prescription-manager' );
 
 if ( ! defined( 'SP_UPM_PLUGIN_FILE' ) ) {

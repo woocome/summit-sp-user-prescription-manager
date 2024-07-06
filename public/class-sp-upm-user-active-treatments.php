@@ -55,16 +55,16 @@ class Sp_Upm_User_Active_Treatments
         $prescriptions = self::getCurrentUserPrescriptions();
 
         self::startOutputBuffering();
-		
+
         foreach ($prescriptions as $prescription) {
             $product_category = $prescription['prescribed_categories'];
             $prescribed_medication_id = absint($prescription['prescribed_medication']);
-			
-			if (! $prescribed_medication_id) continue;
+            
+            if (! $prescribed_medication_id) continue;
 
-			$product = wc_get_product($prescribed_medication_id);
-			
-			if ($product->get_status() != 'private') continue;
+            $product = wc_get_product($prescribed_medication_id);
+            
+            if ($product->get_status() != 'private') continue;
 
             sp_upm_get_template_part('content', 'mc-active-treatments-item', $prescription);
         }
@@ -90,20 +90,20 @@ class Sp_Upm_User_Active_Treatments
         }
 
         self::startOutputBuffering();
+
         foreach ($prescriptions as $prescription) {
             $product_id = absint($prescription['prescribed_medication']);
             $product = wc_get_product($product_id);
 
-            if (!$product_id || ($product && $product->get_status() === 'private')) {
-                continue; // Skip this prescription
-            }
+            if (!$product_id || ($product && $product->get_status() === 'private')) continue;
 
-            sp_upm_get_template_part('content', 'mh-active-treatments-item', $prescription);
+            sp_upm_get_template_part('content', 'active-treatments-item', [...$prescription, 'product' => $product]);
         }
+
         $content = self::getBufferedOutput();
 
         self::startOutputBuffering();
-        self::outputTreatmentWrapperStart("Men's Health Treatments");
+        self::outputTreatmentWrapperStart();
 
         echo $content;
 
@@ -134,7 +134,7 @@ class Sp_Upm_User_Active_Treatments
         $item = self::getBufferedOutput();
 
         self::startOutputBuffering();
-        self::outputTreatmentWrapperStart("NRT");
+        self::outputTreatmentWrapperStart();
 
         echo $item;
 
@@ -144,7 +144,7 @@ class Sp_Upm_User_Active_Treatments
         return ! empty($item) ? $result : "";
     }
 
-    public static function check_product_for_subscription($product_id) {
+    public static function get_product_subscription($product_id) {
         $subscriptions = self::user_active_subscriptions();
 
         foreach ( $subscriptions as $subscription ) {
@@ -174,6 +174,10 @@ class Sp_Upm_User_Active_Treatments
         ]);
 
         return $subscriptions;
+    }
+
+    public static function render_myaccount_panel_button($url, $label) {
+        sp_upm_get_template_part('button', 'account-panel', ['url' => $url, 'label' => $label]);
     }
 
     /** Singleton instance */

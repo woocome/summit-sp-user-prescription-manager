@@ -23,19 +23,32 @@ class Sp_Upm_Appointment_Rebooking
         $appointment_rebooking_form_id = 31131;
 
         add_action( 'wpforms_wp_footer_end', [ $this, 'handle_rebooking_script' ] );
-        add_action("wpforms_process_complete_$appointment_rebooking_form_id", [$this, 'save_new_booking_appointment'], 10, 4);
+        add_action("wpforms_process_complete_$appointment_rebooking_form_id", [$this, 'save_new_booking_appointment'], 10, 2);
+        add_shortcode( 'sp_display_rebooking_form', [$this, 'display_rebooking_form'] );
+    }
+
+    public function display_rebooking_form() {
+        if (isset($_GET['treatment_cat_id'])) {
+            $product_cat_id = sanitize_text_field($_GET['treatment_cat_id']);
+
+            $is_eligible_for_rebooking = sp_upm_doctors_appointments()->check_if_eligible_for_rebooking($product_cat_id);
+
+            if ($is_eligible_for_rebooking == false) {
+                echo do_shortcode('[elementor-template id="43585"]');
+            } else {
+                echo do_shortcode('[elementor-template id="43582"]');
+            }
+        }
     }
 
     public function handle_rebooking_script() {
         if (isset($_GET['treatment_cat_id'])) {
             $treatment_cat_id = sanitize_text_field( $_GET['treatment_cat_id'] );
-
-            $product_cat = get_term_by( is_string($treatment_cat_id) ? 'slug' : 'id', $treatment_cat_id, 'product_cat' );
+            $product_cat = get_term_by( 'id', $treatment_cat_id, 'product_cat' );
 
             if (! $product_cat) return;
 
-            $doctor_id = get_term_meta($product_cat->term_id, 'assigned_doctor', true);
-            $row = sp_upm_doctors_appointments()->get_consultation_item(get_current_user_id(), $product_cat->term_id, 0);
+            $row = sp_upm_doctors_appointments()->get_consultation_item_by('treatment_id', $product_cat->term_id);
 
             if ($row) {
                 $initial_time = "";
@@ -63,7 +76,7 @@ class Sp_Upm_Appointment_Rebooking
         }
     }
 
-    public function save_new_booking_appointment($fields, $entry, $form_data, $entry_id) {
+    public function save_new_booking_appointment($fields, $entry) {
         global $wpdb;
 
         // Get the current user ID
@@ -75,25 +88,30 @@ class Sp_Upm_Appointment_Rebooking
         $booking_field_id = $doctor_appointments_class->get_field_id_by_name($fields, "Appointment Date and Time");
 
         $appointment = $entry['fields'][$booking_field_id];
-        
+
         if ($category_id = absint($entry['fields'][$category_field_id])) {
             try {
                 $product_consultation = get_term_meta($category_id, 'treatment_medication_service', true);
 
-                $row = $doctor_appointments_class->get_consultation_item($user_id, $category_id, 0);
+                $row = $doctor_appointments_class->get_consultation_item_by('treatment_id', $category_id);
+
                 $date = $doctor_appointments_class->convert_date_time($appointment['date'], 'd/m/Y', 'Y-m-d');
                 $time = $doctor_appointments_class->convert_date_time($appointment['time'], 'g:i A', 'H:i:s');
                 $result = $doctor_appointments_class->update_appointment_date_time(absint($row['entry_id']), $date, $time);
-                
-                // empty cart first
-                if( ! WC()->cart->is_empty() ) WC()->cart->empty_cart();
 
-                // add consultation product
-                WC()->cart->add_to_cart( $product_consultation );
+                if ($row['status'] == 0) {
+                    // empty cart first
+                    if( ! WC()->cart->is_empty() ) WC()->cart->empty_cart();
 
-                // Redirect to the checkout page
-                if (wp_redirect(wc_get_checkout_url())) {
-                    exit;
+                    // add consultation product
+                    WC()->cart->add_to_cart( $product_consultation );
+
+                    // Redirect to the checkout page
+                    if (wp_redirect(wc_get_checkout_url())) {
+                        exit;
+                    }
+                } else {
+                    $doctor_appointments_class->update(['has_rebook' => true], ['entry_id' => absint($row['entry_id'])]);
                 }
             } catch (\Exception $e) {
                 
