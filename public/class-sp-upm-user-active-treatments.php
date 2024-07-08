@@ -97,7 +97,9 @@ class Sp_Upm_User_Active_Treatments
 
             if (!$product_id || ($product && $product->get_status() === 'private')) continue;
 
-            sp_upm_get_template_part('content', 'active-treatments-item', [...$prescription, 'product' => $product]);
+            $prescription['product'] = $product;
+
+            sp_upm_get_template_part('content', 'active-treatments-item', $prescription);
         }
 
         $content = self::getBufferedOutput();
