@@ -1,0 +1,3 @@
+<script type="hidden" id="change-prescription-data--<?= $args['entry_id']; ?>"><?= json_encode($args); ?></script>
+<button class="button button-change-prescription button-primary" data-action="approve" data-button-id="<?= $args['entry_id']; ?>">Approve</button>
+<button class="button button-change-prescription button-danger" data-action="reject" data-button-id="<?= $args['entry_id']; ?>">Reject</button>

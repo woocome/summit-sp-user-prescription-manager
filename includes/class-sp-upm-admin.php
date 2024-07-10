@@ -42,6 +42,8 @@ class Sp_User_Prescription_Manager_Admin {
 
     public $pending_prescriptions_table;
 
+    public $change_prescriptions_table;
+
     /**
      * Initialize the class and set its properties.
      *
@@ -76,7 +78,9 @@ class Sp_User_Prescription_Manager_Admin {
      */
     public function enqueue_scripts() {
         wp_register_script( $this->plugin_name, plugin_dir_url( SP_UPM_PLUGIN_FILE ) . 'assets/js/sp-upm-admin.js', array('jquery'), $this->version, true );
+
         wp_localize_script( $this->plugin_name, 'sp_upm_ajax', [
+            'ajax_nonce'=> wp_create_nonce('ajax_nonce'),
             'approve_ajax_nonce'=> wp_create_nonce('sp_upm_approve_ajax_nonce'),
             'delete_ajax_nonce'=> wp_create_nonce('sp_upm_delete_ajax_nonce'),
             'edit_ajax_nonce'=> wp_create_nonce('sp_upm_edit_ajax_nonce'),
@@ -84,7 +88,9 @@ class Sp_User_Prescription_Manager_Admin {
             'approve_action'    => 'approve_pending_prescription',
             'delete_action'    => 'delete_prescription_entry',
             'edit_action'    => 'edit_prescription_entry',
+            'change_prescription_ajax_action' => 'change_prescription_request',
         ]);
+
         wp_enqueue_script( $this->plugin_name );
     }
 
@@ -109,6 +115,7 @@ class Sp_User_Prescription_Manager_Admin {
 
         sp_upm_repeat_counts()->init_hooks();
         sp_upm_consultation_booking()->init();
+        sp_upm_change_prescription_request()->init_hooks();
     }
 
     /**
@@ -137,14 +144,14 @@ class Sp_User_Prescription_Manager_Admin {
         $option = 'per_page';
 
         $args = [
-            'label' => 'Pending Prescriptions',
+            'label' => 'Change Prescription Requests',
             'default' => 20,
             'option' => 'pending_prescriptions_per_page'
         ];
 
         add_screen_option( 'per_page', $args );
 
-        $this->pending_prescriptions_table = new Sp_Upm_List_Table_Pending_Prescriptions();
+        $this->change_prescriptions_table = new Sp_Upm_List_Table_Change_Prescription_Requests();
     }
 
     public function plugin_menu() {
@@ -180,15 +187,15 @@ class Sp_User_Prescription_Manager_Admin {
 
         $this->pending_prescriptions_table->prepare_items();
 
-        sp_upm_get_template_part('content', 'pending-prescriptions-table', ['table_class' => $this]);
+        sp_upm_get_template_part('content', 'pending-prescriptions-table', ['table_class' => $this, 'title' => 'User Prescriptions']);
     }
 
     public function load_change_prescription_requests_table() {
-        sp_upm_get_template_part('content', 'approve-modal');
+        sp_upm_get_template_part('content', 'loading');
 
-        $this->pending_prescriptions_table->prepare_items();
+        $this->change_prescriptions_table->prepare_items();
 
-        sp_upm_get_template_part('content', 'pending-prescriptions-table', ['table_class' => $this]);
+        sp_upm_get_template_part('content', 'change-prescriptions-table', ['table_class' => $this, 'title' => 'Change Prescription Requests']);
     }
 
     public function user_pending_prescriptions() {

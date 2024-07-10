@@ -257,3 +257,15 @@ table.wp-list-table.users .column-role {
     color: inherit;
     fill: rgb(185 28 28 / var(--tw-text-opacity));
 }
+
+.users_page_change-prescription-requests .sp-upm-loading-indicator {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    align-items: center;
+    justify-content: center;
+}
+
+.users_page_change-prescription-requests .sp-upm-loading-indicator.is-active {
+    display: flex;
+}

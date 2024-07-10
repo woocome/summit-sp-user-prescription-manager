@@ -198,9 +198,72 @@
                 $('#treatment_medication_initial').fadeIn(300);
             }
         },
+    };
+
+    const changePrescription = {
+        data: null,
+        action: '',
+        init: function() {
+            this.onButtonClick();
+        },
+        onButtonClick: function() {
+            const parent = this;
+
+            $('.button-change-prescription').on('click', function(e) {
+                e.preventDefault();
+                const dataset = e.currentTarget.dataset;
+                parent.action = dataset.action;
+                parent.setData(dataset.buttonId);
+
+                const response = confirm(parent.getConfirmMessage());
+                if (! response) return;
+
+                const data = {
+                    action_type: dataset.action,
+                    entry_id: dataset.buttonId,
+                    action: sp_upm_ajax.change_prescription_ajax_action,
+                    ajax_nonce: sp_upm_ajax.ajax_nonce,
+                }
+
+                $('.sp-upm-loading-indicator').addClass('is-active');
+
+                $.ajax({
+                    type : 'post',
+                    url: sp_upm_ajax.admin_url,
+                    dataType: 'json',
+                    data: data,
+                    success:function(response) {
+                        alert(response.data);
+
+                        if (response.success) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function(response) {
+                        alert(response.data);
+                    },
+                    complete: function() {
+                        $('.sp-upm-loading-indicator').removeClass('is-active');
+                    }
+                })
+            });
+        },
+        setData: function(id) {
+            this.data = id ? JSON.parse($(`#change-prescription-data--${id}`).html()) : null;
+        },
+        getConfirmMessage: function() {
+            let message = `Are you sure you want to ${this.action} this request?`;
+
+            if (this.data.reason) {
+                message = `Reason: ${this.data.reason} \n` + message;
+            }
+
+            return message;
+        }
     }
 
     $(document).ready(function() {
         app.init();
+        changePrescription.init();
     });
 })(jQuery)

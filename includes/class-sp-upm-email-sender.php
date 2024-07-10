@@ -8,9 +8,12 @@ class Sp_Upm_Email_Sender {
     private $content;
 
     public function __construct($treatment_id) {
-        $this->from = get_term_meta($treatment_id, 'email_from', true);
-        $this->replyTo = get_term_meta($treatment_id, 'email_reply_to', true);
-        $this->subject = get_term_meta($treatment_id, 'email_subject', true);
+
+        if ($treatment_id) {
+            $this->from = get_term_meta($treatment_id, 'email_from', true);
+            $this->replyTo = get_term_meta($treatment_id, 'email_reply_to', true);
+            $this->subject = get_term_meta($treatment_id, 'email_subject', true);
+        }
 
         $this->headers = array();
         $this->setDefaultHeaders();
@@ -49,25 +52,5 @@ class Sp_Upm_Email_Sender {
         $this->setDefaultHeaders();
 
         return wp_mail($user->user_email, $this->subject, $this->content, $this->headers);
-    }
-
-    private function getEmailApprovedPrescriptionHtml($data) {
-        // Generate the email content based on the data provided
-        // This is a placeholder. Replace it with your actual implementation.
-        return "
-            <html>
-            <head></head>
-            <body>
-                <h1>Approved Prescription</h1>
-                <p>Dear {$data['customer_name']},</p>
-                <p>Your prescription for {$data['medication_name']} has been approved.</p>
-                <p>Concern: {$data['concern']}</p>
-                <p>Prescriber: {$data['prescriber']}</p>
-                <p>Is NRT: " . ($data['is_nrt'] ? 'Yes' : 'No') . "</p>
-                <p>Best regards,</p>
-                <p>SummitPharma Team</p>
-            </body>
-            </html>
-        ";
     }
 }

@@ -15,109 +15,31 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 class Sp_Upm_List_Table_Change_Prescription_Requests extends WP_List_Table {
 
     public function __construct() {
-		parent::__construct( [
-			'singular' => __( 'Change Prescription Request', SP_UPM_TEXT_DOMAIN ),
-			'plural'   => __( 'Change Prescription Requests', SP_UPM_TEXT_DOMAIN ), //plural name of the listed records
-			'ajax'     => true //does this table support ajax?
-		]);
-    }
-
-    // Get table data
-    private static function get_table_data(int $per_page = 5, int $page_number = 1) {
-        global $wpdb;
-
-        $orderby = ( isset( $_GET['orderby'] ) ) ? esc_sql( $_GET['orderby'] ) : 'entry_id';
-        $order = ( isset( $_GET['order'] ) ) ? esc_sql( $_GET['order'] ) : 'ASC';
-	    $search_key = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
-        $user_id = null;
-
-        $inner_query = "
-            SELECT entry_id, 
-                form_id, 
-                user_id, 
-                status, 
-                fields, 
-                date, 
-                @row_num := IF(@prev_form_id = form_id AND @prev_user_id = user_id, @row_num + 1, 1) AS row_num, 
-                @prev_form_id := form_id, 
-                @prev_user_id := user_id 
-            FROM {$wpdb->prefix}wpforms_entries, 
-                (SELECT @row_num := 0, @prev_form_id := NULL, @prev_user_id := NULL) AS vars 
-            WHERE status = '' 
-            AND user_id != 0
-        ";
-        
-        $query = "SELECT re.form_id, 
-                re.user_id, 
-                re.entry_id, 
-                re.status, 
-                re.fields, 
-                re.date, 
-                tm.term_id AS treatment 
-            FROM ($inner_query) AS re
-            JOIN {$wpdb->prefix}termmeta AS tm ON re.form_id = tm.meta_value 
-            WHERE re.row_num = 1 
-            AND tm.meta_key = 'category_wp_form' 
-            AND NOT EXISTS (
-                SELECT 1 
-                FROM {$wpdb->prefix}wpforms_entry_meta AS em 
-                WHERE em.entry_id = re.entry_id
-                AND em.type = 'approved_prescription'
-            )
-        ";
-        
-        if ($search_key) {
-            // Prepare search key for $wpdb->prepare()
-            $esc_like_search_key = '%' . $wpdb->esc_like($search_key) . '%';
-
-            // Start group condition
-            $query .= " AND (`fields` LIKE '$esc_like_search_key'";
-        
-            $user_id = null;
-        
-            if (is_email($search_key)) {
-                $user = get_user_by("email", $search_key);
-
-                if ($user) {
-                    $user_id = $user->ID;
-                    $query .= " OR `user_id` = $user_id";
-                }
-            }
-        
-            // Close group condition
-            $query .= ")";
-        }
-
-        $query .= " ORDER BY %i $order LIMIT %d OFFSET %d";
-        
-        // Prepare and execute the final query
-        $query = $wpdb->prepare($query, [$orderby, $per_page, (($page_number - 1) * $per_page)]);
-        $results = $wpdb->get_results($query, ARRAY_A);
-        
-        // Check for errors
-        if ($wpdb->last_error) {
-            return [];
-        } else {
-            return $results;
-        }
+        parent::__construct( [
+            'singular' => __( 'Change Prescription Request', SP_UPM_TEXT_DOMAIN ),
+            'plural'   => __( 'Change Prescription Requests', SP_UPM_TEXT_DOMAIN ), //plural name of the listed records
+            'ajax'     => true //does this table support ajax?
+        ]);
     }
 
     // Get table data
     private static function get_data(int $per_page = 5, int $page_number = 1) {
         global $wpdb;
 
+        $table = sp_upm_change_prescription_request()->get_table_name();
         $orderby = ( isset( $_GET['orderby'] ) ) ? esc_sql( $_GET['orderby'] ) : 'entry_id';
         $order = ( isset( $_GET['order'] ) ) ? esc_sql( $_GET['order'] ) : 'ASC';
         $search_key = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
-        $user_id = null;
 
-        $query = "SELECT * FROM %i";
-
+        $filter_query = self::build_search_query($search_key, self::filter_by_treatment());
+        $query = "SELECT user_id, entry_id, current_product_id, requested_product_id, reason, status, created_at FROM %i" . $filter_query;
         $query .= " ORDER BY %i $order LIMIT %d OFFSET %d";
 
         // Prepare and execute the final query
-        $query = $wpdb->prepare($query, [$orderby, $per_page, (($page_number - 1) * $per_page)]);
+        $query = $wpdb->prepare($query, [$table, $orderby, $per_page, (($page_number - 1) * $per_page)]);
         $results = $wpdb->get_results($query, ARRAY_A);
+
+        var_dump($query);
         
         // Check for errors
         if ($wpdb->last_error) {
@@ -127,77 +49,93 @@ class Sp_Upm_List_Table_Change_Prescription_Requests extends WP_List_Table {
         }
     }
 
-	/**
-	 * Returns the count of records in the database.
-	 *
-	 * @return null|string
-	 */
-	public static function record_count() {
-		global $wpdb;
-        
-        $table_name = "ksb_wpforms_entries";
-        $table_entry_meta = "ksb_wpforms_entry_meta";
+    private static function build_search_query($search_key, $existing_condition) {
+        global $wpdb;
 
-        $query = $wpdb->prepare("
-            SELECT COUNT(*) AS count 
-            FROM (
-                SELECT *,
-                    @row_num := IF(@prev_form_id = form_id AND @prev_user_id = user_id, @row_num + 1, 1) AS row_num,
-                    @prev_form_id := form_id,
-                    @prev_user_id := user_id
-                FROM (
-                    SELECT re.entry_id, re.form_id, re.user_id
-                    FROM $table_name AS re
-                    WHERE re.status = ''
-                    AND re.user_id != 0
-                    AND NOT EXISTS (
-                        SELECT 1 
-                        FROM $table_entry_meta AS em 
-                        WHERE em.entry_id = re.entry_id 
-                        AND em.type = %s
-                    )
-                    ORDER BY form_id, user_id, entry_id DESC
-                ) AS ranked
-                CROSS JOIN (SELECT @row_num := 0, @prev_form_id := NULL, @prev_user_id := NULL) AS vars
-            ) AS subquery
-            WHERE subquery.row_num = 1;
-        ", 'approved_prescription');
+        $query = $existing_condition;
 
-		return $wpdb->get_var($query);
-	}
+        if ($search_key) {
+            // Prepare search key for $wpdb->prepare()
+            $esc_like_search_key = '%' . $wpdb->esc_like($search_key) . '%';
+            $conjunction = ($query == "") ? " WHERE " : " AND ";
 
-	/**
-	 * Render a column when no column specific method exist.
-	 *
-	 * @param mixed $item
-	 * @param string $column_name
-	 *
-	 * @return mixed
-	 */
-	public function column_default( $item, $column_name ) {
-		$available_points = "";
+            // Start group condition
+            $query .= " {$conjunction} (`meta` LIKE '$esc_like_search_key'";
+            $query .= " OR JSON_EXTRACT(meta, '$.customer_name') LIKE '$esc_like_search_key'";
 
+            $user_id = null;
+
+            if (is_email($search_key)) {
+                $user = get_user_by("email", $search_key);
+                $query .= " OR JSON_EXTRACT(meta, '$.customer_email') LIKE '$esc_like_search_key'";
+
+                if ($user) {
+                    $user_id = $user->ID;
+                    $query .= " OR `user_id` = $user_id";
+                }
+            }
+
+            // Close group condition
+            $query .= ")";
+        }
+
+        return $query;
+    }
+
+    private static function filter_by_treatment() {
+        $treatment = ( isset( $_GET['treatment'] ) ) ? esc_sql( $_GET['treatment'] ) : 'all';
+        $query = "";
+
+        if ($treatment != 'all') {
+            $product_category = get_term_by('slug', $treatment, 'product_cat');
+
+            if (! empty($product_category)) $query .= " WHERE product_cat_id = {$product_category->term_id}";
+        }
+
+        return $query;
+    }
+
+    /**
+     * Returns the count of records in the database.
+     *
+     * @return null|string
+     */
+    public static function record_count() {
+        global $wpdb;
+
+        $table = sp_upm_change_prescription_request()->get_table_name();
+
+        $search_key = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
+
+        $filter_query = self::build_search_query($search_key, self::filter_by_treatment());
+        $query = "SELECT COUNT(id) AS count FROM %i" . $filter_query;
+
+        $query = $wpdb->prepare($query, $table);
+
+        return $wpdb->get_var($query);
+    }
+
+    /**
+     * Render a column when no column specific method exist.
+     *
+     * @param mixed $item
+     * @param string $column_name
+     *
+     * @return mixed
+     */
+    public function column_default( $item, $column_name ) {
         switch ( $column_name ) {
-            case 'treatment':
-                $treatment = get_term( $item['treatment'], 'product_cat' );
-                return "<strong>$treatment->name</strong>";
-            case 'appointment':
-                return $this->get_status_label( $item['status'] );
+            case 'current_product_id':
+            case 'requested_product_id':
+                $product = wc_get_product(absint($item[$column_name]));
+                return $product->get_name();
             case 'status':
-                return $this->get_status_label( $item['status'] );
-            case 'date':
-                return $item['date'];
-            case 'prescription':
-                return self::treatment_products_field($item['treatment'], $item['entry_id']);
-            case 'end_date':
-                return self::active_until_date_field($item['entry_id']);
+                return sp_upm_change_prescription_request()->get_status_label($item[$column_name]);
+            case 'created_at':
+                return $item['created_at'];
             default:
                 return $item[$column_name]; //Show the whole array for troubleshooting purposes
         }
-	}
-
-    public function get_status_label($status) {
-        return $status == 0 ? 'awaiting payment' : ($status == 1 ? 'paid' : 'approved');
     }
 
     public function column_customer($item) {
@@ -218,38 +156,23 @@ class Sp_Upm_List_Table_Change_Prescription_Requests extends WP_List_Table {
     }
 
     public function column_actions($item) {
+        if (absint($item['status'])) return;
+
         ob_start();
 
-        sp_upm_get_template_part('content', 'pending-prescriptions-action', ['item' => $item]);
+        sp_upm_get_template_part('content', 'change-prescription-actions', $item);
 
-        $html = ob_get_clean();
-
-        return $html;
-    }
-
-    public function single_row( $item ) {
-        echo "<tr class='prescription pending-prescription-{$item['entry_id']}' data-id='{$item['entry_id']}' data-form-id='{$item['form_id']}' data-user-id='{$item['user_id']}' data-treatment-id='{$item['treatment']}'>";
-            $this->single_row_columns( $item );
-        echo '</tr>';
-    }
-
-	private static function treatment_products_field($treatment_id, $entry_id) {
-        sp_upm_get_template_part('content', 'treatment-products', ['treatment_id' => $treatment_id, 'entry_id' => $entry_id]);
-    }
-
-	private static function active_until_date_field($entry_id) {
-        sp_upm_get_template_part('content', 'date-field', ['entry_id' => $entry_id]);
+        return ob_get_clean();
     }
 
     public function get_columns() {
         $columns = array(
             'customer'      => __('Customer', SP_UPM_TEXT_DOMAIN),
-            'treatment'     => __('Treatment', SP_UPM_TEXT_DOMAIN),
-            'appointment'   => __('Booking Date', SP_UPM_TEXT_DOMAIN),
+            'current_product_id'     => __('Current Prescription', SP_UPM_TEXT_DOMAIN),
+            'requested_product_id'     => __('Requested Medication', SP_UPM_TEXT_DOMAIN),
+            'reason'     => __('Reason', SP_UPM_TEXT_DOMAIN),
             'status'        => __('Status', SP_UPM_TEXT_DOMAIN),
-            'prescription'  => __('Prescribe Product', SP_UPM_TEXT_DOMAIN),
-            'end_date'      => __('Active Until Date', SP_UPM_TEXT_DOMAIN),
-            'date'          => __('Date Submitted', SP_UPM_TEXT_DOMAIN),
+            'created_at'          => __('Date Submitted', SP_UPM_TEXT_DOMAIN),
             'actions'       => __('&nbsp', SP_UPM_TEXT_DOMAIN)
         );
 
@@ -257,9 +180,9 @@ class Sp_Upm_List_Table_Change_Prescription_Requests extends WP_List_Table {
     }
 
     public function prepare_items() {
-		$per_page     = $this->get_items_per_page( 'pending_prescriptions_per_page', 20 );
+		$per_page     = $this->get_items_per_page( 'requests_per_page', 20 );
         $current_page = $this->get_pagenum();
-        $total_items = self::record_count() - 3; // TODO: Remove temporary
+        $total_items = self::record_count(); // TODO: Remove temporary
 
         $columns = $this->get_columns();
         $hidden = array();
@@ -274,13 +197,13 @@ class Sp_Upm_List_Table_Change_Prescription_Requests extends WP_List_Table {
             'total_pages' => ceil( $total_items / $per_page ) // use ceil to round up
         ));
 
-        $this->items = self::get_data($per_page, $current_page);;
+        $this->items = self::get_data($per_page, $current_page);
     }
 
     protected function get_sortable_columns() {
         $sortable_columns = array(
             'treatment'  => array('treatment', true),
-            'date'   => array('date', true)
+            'created_at'   => array('created_at', true)
         );
 
         return $sortable_columns;
