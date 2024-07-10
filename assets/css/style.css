@@ -75,7 +75,7 @@
 }
 
 .at-wrapper--with-cta .sp-cp-cta {
-    width: 40%;
+    width: 45%;
 }
 
 .at-wrapper--with-cta .sp-cp-cta .sp-active-treatment-icon {
@@ -84,6 +84,15 @@
     color: var(--sp-primary);
     font-size: 12px;
     line-height: 1.25;
+    padding: 5px 10px;
+    margin: 0;
+    gap: 10px;
+    display: block;
+}
+
+.at-wrapper--with-cta .sp-cp-cta .sp-active-treatments-button {
+    display: block;
+    width: 100%;
 }
 
 .at-active-date {
