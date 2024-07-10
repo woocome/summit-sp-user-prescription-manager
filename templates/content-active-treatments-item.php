@@ -59,7 +59,7 @@
                             <p class="at-content_info"><?php echo $product->get_name(); ?></p>
                         </div>
                         <div class="at-items active-date-wrapper active-treatments-cta-wrapper sp-cp-cta">
-                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button($change_subscription_url, 'Change Subscription'); ?>
+                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($product->get_id()), 'Change Subscription'); ?>
                         </div>
                     </div>
                     <div class="at-active-date">
