@@ -1,4 +1,8 @@
 <?php
+	/**
+	 * @param int $args['treatment_id']
+	 * @param int $args['name']
+	 **/
     $treatment_id = absint($args['treatment_id']);
     $prescreening_form = get_field( 'category_wp_form_url', 'product_cat_' . $treatment_id );
     $support_email = get_field( 'email_reply_to', 'product_cat_' . $treatment_id );
@@ -8,7 +12,8 @@
 ?>
 <p><strong>Hi <?php echo $args['name']; ?>,</strong></p>
 
-<p>Thank you for booking a consultation with Summit. To help us prepare for your telehealth appointment, we would appreciate it if you could complete the attached pre-screening form prior to your scheduled time. This step is optional, and you are welcome to discuss any concerns directly with our expert doctors during your consultation.</p>
+<p>Thank you for booking a consultation with Summit. To help us prepare for your telehealth appointment, please complete the attached pre-screening form.</p>
+<p>Please note that if the pre-screening form is not completed at least <strong>12 hours prior</strong> to your scheduled time, your appointment may be forfeited. In such cases, rescheduling will be allowed only once. Thank you for your understanding!</p>
 
 <p>
     <a href="<?= $prescreening_form; ?>" style="display: inline-block;padding: 7px 20px;background-color: #006AD3;color: #fff;border-radius: 3px; text-decoration: none;"><?php echo $treatment->name; ?> Pre-screening Form</a>

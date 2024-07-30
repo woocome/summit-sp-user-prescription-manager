@@ -52,30 +52,57 @@
     };
 
     (function($) {
+        function formatDate(dateString) {
+            // Parse the date string into a Date object
+            const date = new Date(dateString);
+
+            // Get the day, month, and year from the Date object
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-11
+            const year = date.getFullYear();
+
+            // Format the date as d/m/y
+            return `${day}/${month}/${year}`;
+        }
+
+        function disable_date_time(dateStr) {
+            if (appointment_dates[dateStr]) {
+                $('.ui-timepicker-list li').each(function(i, el) {
+                    $(el).removeClass('ui-timepicker-disabled');
+
+                    appointment_dates[dateStr].forEach(function(date, key) {
+                        if (date === $(el).text()) {
+                            $(el).addClass('ui-timepicker-disabled');
+                        }
+                    });
+                });
+            } else {
+                $('.ui-timepicker-list li').removeClass('ui-timepicker-disabled');
+            }
+        }
+
         $( window ).on( 'load', function() {
-			if ($('.wpforms-field-date-time-time').length) {
-				$('.wpforms-field-date-time-time').timepicker('show');
-				$('.wpforms-field-date-time-time').timepicker('hide');
+            if ($('.wpforms-field-date-time-time').length) {
+                $('.wpforms-field-date-time-time').timepicker('show');
+                $('.wpforms-field-date-time-time').timepicker('hide');
 
-				$('.wpforms-field-date-time-date').on('change', function(e) {
-					const dateStr = $(this).val();
-					$(this).parents('fieldset').find('.wpforms-field-date-time-time').val('');
+                const earliestDate = $('.flatpickr-day:not(.flatpickr-disabled)').eq(0).attr('aria-label');
 
-					if (appointment_dates[dateStr]) {
-						$('.ui-timepicker-list li').each(function(i, el) {
-							$(el).removeClass('ui-timepicker-disabled');
+                window.wpforms_datepicker.defaultDate = new Date(earliestDate);
+                const wpformsDate = flatpickr('.wpforms-datepicker-wrap', window.wpforms_datepicker);
+                wpformsDate.jumpToDate(new Date(earliestDate));
 
-							appointment_dates[dateStr].forEach(function(date, key) {
-								if (date === $(el).text()) {
-									$(el).addClass('ui-timepicker-disabled');
-								}
-							});
-						});
-					} else {
-						$('.ui-timepicker-list li').removeClass('ui-timepicker-disabled');
-					}
-				});
-			}
+                disable_date_time(formatDate(earliestDate));
+                const earlistTime = $('.ui-timepicker-list li:not(.ui-timepicker-disabled)').eq(0).text();
+                $('.earliest-date span').text(`${earliestDate} ${earlistTime}`);
+
+                $('.wpforms-field-date-time-date').on('change', function(e) {
+                    const dateStr = $(this).val();
+                    $(this).parents('fieldset').find('.wpforms-field-date-time-time').val('');
+
+                    disable_date_time(dateStr);
+                });
+            }
         } )
     })(jQuery);
 </script>

@@ -516,6 +516,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
         $available_time_range = wp_json_encode($this->get_time_range_availability($doctor_id) ?? []);
         $disabled_dates = wp_json_encode(array_column($this->get_disabled_dates($doctor_id), 'disable_date'));
         $disabled_date_time_range = wp_json_encode($this->get_disabled_date_time_range($doctor_id));
+		$disabled_date_time_range = $form_id == 41922 ? wp_json_encode([]) : $disabled_date_time_range;
 
         sp_upm_get_template_part('/scripts/content', 'appointment-dates', [
             'appointment_dates' => $appointment_dates,

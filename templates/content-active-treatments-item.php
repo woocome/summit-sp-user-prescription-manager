@@ -3,7 +3,9 @@
     $product = $args['product'];
     $top_up_product = get_field('select_top_up_product', $product->get_id());
     $product_name = sp_get_product_name($product->get_id());
-    $active_until_date = date("M. d, Y", strtotime($args['active_date']));
+    $active_until_date = !empty($args['active_date']) && strtotime($args['active_date']) !== false 
+    ? date("M. d, Y", strtotime($args['active_date'])) 
+    : '';
     $panel_card_info = get_field('my_account_card_tagline', 'product_cat_' . $product_category->term_id);
     $custom_redirect = get_term_meta($product_category->term_id, 'buy_now_redirection_url', true);
     $url = $custom_redirect ? get_permalink($custom_redirect) : get_term_link($product_category, 'product_cat');
@@ -35,7 +37,7 @@
                 </div>
                 <div class="at-active-date">
                     <div class="active-date-wrapper">
-                        <p><span>Active Until:</span> <?= $active_until_date; ?></p>
+                        <p><span>Active Until:</span> <?= !empty($active_until_date) ? $active_until_date : 'N/A'; ?></p>
                         <?php sp_upm_get_template_part('content', 'change-medication-link', ['product' => $product]); ?>
                     </div>
                 </div>
