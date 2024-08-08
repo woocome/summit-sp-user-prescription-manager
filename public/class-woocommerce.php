@@ -30,7 +30,8 @@ class Sp_Upm_WooCommerce
 
     public static function send_pre_screening_form() {
         $treatment_id = absint($_REQUEST['treatment_id']);
-        $user = wp_get_current_user();
+        $user_id = absint($_REQUEST['user_id']);
+        $user = $user_id ? get_user_by('id', $user_id) : wp_get_current_user();
 
         $mail = new Sp_Upm_Email_Sender($treatment_id);
         $mail->setSubject('🚀 Pre-Screening Form for Your Upcoming Consultation 🚀');
@@ -42,9 +43,9 @@ class Sp_Upm_WooCommerce
         $content = ob_get_clean();
 
         $mail->setContent($content);
-        $test = $mail->send($user);
+        $result = $mail->send($user);
 
-        $redirect_uri = add_query_arg('sent', '1', wp_get_referer());
+        $redirect_uri = add_query_arg('sent', $result, wp_get_referer());
 
         wp_safe_redirect( $redirect_uri );
     }

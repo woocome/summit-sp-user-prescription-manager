@@ -1,9 +1,23 @@
 <?php
-    $text = '';
-
     $status = absint($args['status']);
-    $text = $status == 0 ? 'Pending Payment' : ( $status == 1 ? 'Paid' : 'Approved');
-    $text = $status == 3 ? 'Treatment Ordered' : $text;
+
+    switch ($status) {
+        case 1:
+            $text = 'Paid';
+            break;
+        case 2:
+            $text = 'Approved';
+            break;
+        case 3:
+            $text = 'Treatment Ordered';
+            break;
+        case 4:
+            $text = 'Form Submitted';
+            break;
+        default:
+            $text = 'Pending Payment';
+            break;
+    }
 ?>
 <span class="sm-upm-telehealth-payment-status sm-upm-telehealth-payment-status--<?= strtolower(str_replace(' ', '-', $text)); ?>">
     <?= $text; ?>

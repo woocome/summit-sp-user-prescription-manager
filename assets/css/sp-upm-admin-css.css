@@ -56,6 +56,11 @@
     --sp-status-color: #ffba00;
 }
 
+.sm-upm-telehealth-payment-status--form-submitted {
+    --sp-status-bg-color: #BEC6A0;
+    --sp-status-color: #708871;
+}
+
 .sp-upm-banner-message--success .sp-upm-banner-message-icon {
     --tw-gradient-from: #62ffa7 0%;
     --tw-gradient-to: hsl(146 100% 35% / 1) 100%;

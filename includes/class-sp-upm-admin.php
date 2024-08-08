@@ -99,6 +99,7 @@ class Sp_User_Prescription_Manager_Admin {
         include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-admin-change-prescription-requests.php';
         include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-admin-delete-prescription-entry.php';
         include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-admin-repeat-counts.php';
+        include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-expired-prescription.php';
     }
 
     public function init() {
@@ -109,6 +110,7 @@ class Sp_User_Prescription_Manager_Admin {
 
         sp_upm_repeat_counts()->init_hooks();
         sp_upm_consultation_booking()->init();
+        Sp_Expired_Prescription::get_instance()->init_hooks();
     }
 
     /**
@@ -221,7 +223,7 @@ class Sp_User_Prescription_Manager_Admin {
 
                         if ( $treatment->term_id === $treatment_id && empty($prescribed_medication)) {
                             $result = self::update_user_metafields($user_id, ($key + 1), $treatment_id, $product_id, $prescriber_id, $date);
-                            $approved_status = 2;
+                            $approved_status = sp_upm_doctors_appointments()::APPROVED;
 
                             $meta = [
                                 'prescriber_id' => $prescriber_id,

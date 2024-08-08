@@ -2,6 +2,8 @@
     $product_category = $args['prescribed_categories'];
     $product = $args['product'];
     $top_up_product = get_field('select_top_up_product', $product->get_id());
+
+    $one_time_product = $top_up_product ? $top_up_product : $product;
     $product_name = sp_get_product_name($product->get_id());
     $active_until_date = !empty($args['active_date']) && strtotime($args['active_date']) !== false 
     ? date("M. d, Y", strtotime($args['active_date'])) 
@@ -28,17 +30,21 @@
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($top_up_product->ID), 'Buy - One Time'); ?>
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($product->get_id()), 'Buy - Subscription'); ?>
                         <?php else : ?>
-                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($top_up_product->ID), 'Buy - One Time'); ?>
+                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($one_time_product->ID), 'Buy - One Time'); ?>
                         <?php endif; ?>
 
-                        <?php sp_upm_get_template_part('content', 'change-medication-link', ['product' => $product]); ?>
+                        <?php if ($product_category->name == 'Weight Loss') : ?>
+                            <a href="javascript:void(0)" id="btn-bmi-monitoring">BMI Monitoring</a>
+                        <?php endif; ?>
+
+                        <?php // sp_upm_get_template_part('content', 'change-medication-link', ['product' => $product]); ?>
                     </div>
                     <?php endif; ?>
                 </div>
                 <div class="at-active-date">
                     <div class="active-date-wrapper">
                         <p><span>Active Until:</span> <?= !empty($active_until_date) ? $active_until_date : 'N/A'; ?></p>
-                        <?php sp_upm_get_template_part('content', 'change-medication-link', ['product' => $product]); ?>
+                        <?php // sp_upm_get_template_part('content', 'change-medication-link', ['product' => $product]); ?>
                     </div>
                 </div>
             </div>

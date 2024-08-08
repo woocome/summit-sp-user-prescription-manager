@@ -62,6 +62,10 @@ class Sp_Upm_Admin_Doctors_Appointments {
     const STATUS_ORDERED = 3;
 
     /**
+     * Pre-screening form completed
+     */
+    const STATUS_FORM_COMPLETED = 4;
+    /**
      * Initialize the class and set its properties.
      *
      * @since    1.0.0
@@ -79,6 +83,8 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
     public function init_hooks() {
         add_action('wpforms_process_complete', [$this, 'save_appointment_request'], 10, 4);
+
+        add_action('wpforms_process_complete', [$this, 'handle_pre_screening_form_submission'], 10, 4);
         add_action('init', [$this, 'register_doctors_post_type']);
 
         if (! isset($_GET['summit-treatment']) || ! isset($_GET['treatment_cat_id'])) {
@@ -356,6 +362,44 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
             error_log("APPOINTMENT END === " . $user_id . " === " . $form_id . " === " . $product_category->term_id);
         }
+    }
+
+    public function handle_pre_screening_form_submission($fields, $entry, $form_data, $entry_id)
+    {
+        // Get the current user ID
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            $user = get_user_by('id', $user_id);
+        } else {
+            $email_field_id = $this->get_field_id_by_name($fields, "Email", 'email');
+            $email = $entry['fields'][$email_field_id];
+            $user = get_user_by( 'email', $email );
+            $user_id = $user->ID;
+        }
+
+        $form_id = absint($form_data['id']);
+
+        $product_category = $this->get_assigned_product_category_by_form_id($form_id);
+        // exit if no associated category found
+        if ( ! $product_category ) return;
+
+        $product_cat_id = $product_category->term_id;
+
+        $pre_screening_form_id = absint(get_field('category_wp_form', "product_cat_{$product_cat_id}"));
+        if ($pre_screening_form_id != $form_id) return; // validate if form is a pre-screening form
+
+        $consultation = $this->get_consultation_item($user_id, $product_cat_id, self::PAID);
+        if (! $consultation) return;
+
+        global $wpdb;
+
+        $wpdb->update(
+            $this->table_name,
+            ['status' => self::STATUS_FORM_COMPLETED],
+            ['id' => $consultation['id']],
+            ['%d'],
+            ['%d']
+        );
     }
 
     public function create($doctor_id, $form_id, $entry_id, $user, $product_cat, $date, $time, $status = 0, $marketing_code = '') {
@@ -782,8 +826,20 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
     public function get_consultation_item($user_id, $treatment_id, $status) {
         global $wpdb;
-
-        $query = $wpdb->prepare('SELECT
+    
+        // Determine the format of the status condition
+        if (is_array($status)) {
+            $placeholders = implode(',', array_fill(0, count($status), '%d'));
+            $status_condition = "AND status IN ($placeholders)";
+            $query_params = array_merge([$this->table_name, $user_id, $treatment_id], $status);
+        } else {
+            $status_condition = "AND status = %d";
+            $query_params = [$this->table_name, $user_id, $treatment_id, $status];
+        }
+    
+        // Prepare the query
+        $query = $wpdb->prepare(
+            "SELECT
                 id,
                 user_id,
                 entry_id,
@@ -798,12 +854,12 @@ class Sp_Upm_Admin_Doctors_Appointments {
             FROM %i
             WHERE user_id = %d
             AND treatment_id = %d
-            AND status = %d
+            $status_condition
             ORDER BY id DESC
-            LIMIT 1',
-            $this->table_name, $user_id, $treatment_id, $status
+            LIMIT 1",
+            ...$query_params
         );
-
+    
         return $wpdb->get_row($query, ARRAY_A);
     }
 

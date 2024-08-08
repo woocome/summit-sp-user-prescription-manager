@@ -187,11 +187,19 @@ class Sp_Upm_List_Table_Pending_Prescriptions extends WP_List_Table {
                 return $item['status'] == 2 ? get_the_title(absint($item['doctor_id'])) : "";
             case 'final_treatment':
                 $treatment = get_term( $item['final_treatment_cat_id'], 'product_cat' );
-                return $treatment ? "<strong>$treatment->name</strong>" : "-";
+                return !is_wp_error($treatment) ? "<strong>$treatment->name</strong>" : "-";
             case 'product':
                 return $this->get_product_name($item);
             case 'status':
-                return $this->get_status_label( $item['status'] );
+                $label = $this->get_status_label( $item['status'] );
+                $pre_screening_form = get_field('category_wp_form', 'product_cat_' . $item['treatment_id']);
+                $button = '';
+
+                if ($item['status'] == sp_upm_doctors_appointments()::PAID && (! empty($pre_screening_form) || $pre_screening_form)) {
+                    $button = self::display_send_pre_sreening_form($item);
+                }
+
+                return $label . $button;
             case 'date':
                 return $item['created_at'];
             case 'marketing_code':
@@ -206,6 +214,18 @@ class Sp_Upm_List_Table_Pending_Prescriptions extends WP_List_Table {
         $time = new DateTime($item['appointment_time']);
 
         return $date->format('F d, Y') . ' - ' . $time->format('h:i A');
+    }
+
+    public static function display_send_pre_sreening_form($item) {
+        ob_start();
+
+        sp_upm_get_template_part('content', 'send-pre-screening-form', [
+            'treatment_id' => $item['treatment_id'],
+            'button_label' => 'Send Form Link',
+            'user_id' => $item['user_id']
+        ]);
+
+        return ob_get_clean();
     }
 
     /**
@@ -247,7 +267,11 @@ class Sp_Upm_List_Table_Pending_Prescriptions extends WP_List_Table {
     }
 
     public function get_status_label($status) {
+        ob_start();
+
         sp_upm_get_template_part('content', 'status', ['status' => $status]);
+
+        return ob_get_clean();
     }
 
     public function get_product_name($item) {

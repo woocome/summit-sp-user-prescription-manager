@@ -128,6 +128,7 @@ class Sp_User_Prescription_Manager {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sp-upm-mailchimp.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sp-upm-autoloader.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sp-upm-admin.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sp-upm-weight-loss.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-sp-upm-public.php';
 
 		$this->loader = new Sp_User_Prescription_Manager_Loader();
@@ -172,6 +173,8 @@ class Sp_User_Prescription_Manager {
         $this->loader->add_action('woocommerce_add_to_cart', $plugin_admin,'restrict_product_add_to_cart', 10, 6);
 
 		new Sp_Upm_Admin_Change_Prescription_Requests( $this->plugin_name, $this->version );
+
+		Sp_Weight_Loss::init_hooks();
 	}
 
 	/**
