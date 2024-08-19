@@ -562,6 +562,12 @@ class Sp_Upm_Admin_Doctors_Appointments {
         $disabled_date_time_range = wp_json_encode($this->get_disabled_date_time_range($doctor_id));
 		$disabled_date_time_range = $form_id == 41922 ? wp_json_encode([]) : $disabled_date_time_range;
 
+        if ($form_id == 49920) {
+            $disabled_dates = wp_json_encode( [['from' => 'today', 'to' => '19/08/2024']] );
+        } else if ($form_id == 50753) {
+            $disabled_dates = wp_json_encode( [['from' => 'today', 'to' => '20/08/2024']] );
+		}
+
         sp_upm_get_template_part('/scripts/content', 'appointment-dates', [
             'appointment_dates' => $appointment_dates,
             'available_weekdays' => $available_weekdays,
@@ -595,8 +601,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
     }
 
     public function get_disabled_dates($doctor_id) {
-        $availability = get_field('date_setting
-        s', $doctor_id);
+        $availability = get_field('date_settings', $doctor_id);
 
         return $availability ?? [];
     }
@@ -844,6 +849,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
                 user_id,
                 entry_id,
                 form_id,
+                treatment_id,
                 final_treatment_cat_id,
                 medication_id,
                 status,

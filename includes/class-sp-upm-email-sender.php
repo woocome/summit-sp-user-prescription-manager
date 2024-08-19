@@ -70,4 +70,16 @@ class Sp_Upm_Email_Sender {
             </html>
         ";
     }
+
+    /**
+     * Get email headers.
+     *
+     * @return string
+     */
+    public function get_headers() {
+        $header = 'Content-Type: Content-Type: text/html; charset=UTF-8' . "\r\n";
+        $header .= 'Reply-to: SummitPharma' . ' <' . 'info@summitpharma.com.ay' . ">\r\n";
+
+        return $header;
+    }
 }

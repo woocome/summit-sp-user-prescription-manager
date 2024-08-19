@@ -4,9 +4,11 @@
  * @param string $args['medication_name']
  * @param string $args['concern']
  * @param string $args['prescriber']
+ * @param string $args['contact_email']
+ * 
  */
 ?>
-<div style="max-width: 560px; background: #ffffff; border-radius: 5px; margin: 40px auto; font-family: Open Sans,Helvetica,Arial; font-size: 15px; color: #000;">
+<div style="max-width: 560px; background: #ffffff; border-radius: 5px; margin: 40px auto; font-family: Open Sans,Helvetica,Arial; font-size: 15px; color: #000; text-align: left;">
     <div style="text-align: center;">
         <a href="<?= esc_url(home_url()); ?>" target="_blank">
             <img class="aligncenter" style="max-width: 100%; display: block;" src="<?= esc_url(home_url()); ?>/wp-content/uploads/2024/07/Final-Header-copy.jpg" />
@@ -35,7 +37,7 @@
 
         <p>Details above can also be seen in your Summit Pharma Account.</p>
 
-        <p>Should you have any questions, chat us on <a href="<?= esc_url(home_url()); ?>" target="_blank">summitpharma.com.au</a> or email us at <a href="mailto:menshealth@summitpharma.com.au" style="color: #FFAC1C;">menshealth@summitpharma.com.au.</a></p>
+        <p>Should you have any questions, chat us on <a href="<?= esc_url(home_url()); ?>" target="_blank">summitpharma.com.au</a> or email us at <a href="mailto:<?= $args['contact_email']; ?>" style="color: #FFAC1C;"><?= $args['contact_email']; ?>.</a></p>
 
         <p>Exciting times lie ahead! Thank you for trusting Summit Pharmacy for your well-being.</p>
 

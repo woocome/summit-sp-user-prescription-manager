@@ -15,7 +15,7 @@
 <button class="edit-entry-btn btn-entry-action button button-secondary" data-entryid="<?php echo $args['item']['entry_id']; ?>" data-treatment-id="<?php echo $args['item']['treatment_id']; ?>" data-action="edit">
     Edit
 </button>
-<?php if ($item['status'] != 2) : ?>
+<?php if ($item['status'] == sp_upm_doctors_appointments()::PAID || $item['status'] == sp_upm_doctors_appointments()::STATUS_FORM_COMPLETED) : ?>
 <button class="approve-subscription-btn btn-entry-action button button-primary" data-entryid="<?php echo $args['item']['entry_id']; ?>" data-treatment-id="<?php echo $args['item']['treatment_id']; ?>" data-action="approve">
     Prescribe
 </button>

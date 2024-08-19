@@ -23,6 +23,8 @@ class Sp_Upm_List_Table_Pending_Prescriptions extends WP_List_Table {
         'premature-ejaculation' => 'Premature Ejaculation',
         'hairloss' => 'Hairloss',
         'nrt' => 'NRT',
+        'weight-loss' => 'Weight Loss',
+		'herpes' => 'Herpes'
     );
 
     public function __construct() {
@@ -245,7 +247,7 @@ class Sp_Upm_List_Table_Pending_Prescriptions extends WP_List_Table {
             // 'edit'    => sprintf('<a href="?page=%s&user_id=%s">' . __('Edit Pending Presriptions', SP_UPM_TEXT_DOMAIN) . '</a>', 'user-pending-prescriptions', $item['user_id']),
         );
 
-        if (class_exists('user_switching')) {
+        if (class_exists('user_switching') && $user) {
             global $user_switching;
             $link = $user_switching::maybe_switch_url( $user );
 

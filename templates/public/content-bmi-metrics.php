@@ -3,7 +3,6 @@
 
     if (! $bmi_metrics) return;
 ?>
-
 <table class="bmi-metrics">
     <thead>
         <tr>
@@ -33,3 +32,6 @@
         <?php endforeach; ?>
     </tbody>
 </table>
+
+<p class="bmi-disclaimer-text"><em>*This BMI Chart is being monitored by your assigned practitioner, <a href="<?= esc_url(home_url('/bmi-change-request-form/')); ?>"><strong>For changes</strong></a> on the  data above, kindly give us a call at <a href="tel:03 7018 3577">03 7018 3577</a> or send us a chat.
+</em></p>

@@ -42,7 +42,7 @@
                     <select name="<?= $key; ?>" id="<?= $key; ?>" class="js-treatment-medication-select treatment-medication regular-text">
                         <option value="">Select a medication</option>
                         <?php foreach ($products as $_product) : ?>
-                            <?php if ($_product->is_type(['subscription', 'variable-subscription'])) : ?>
+                            <?php if (has_term('weight-loss', 'product_cat', $_product->get_id()) || $_product->is_type(['subscription', 'variable-subscription'])) : ?>
                             <option value="<?= $_product->get_id(); ?>"><?= $_product->get_name(); ?></option>
                             <?php endif; ?>
                         <?php endforeach; ?>

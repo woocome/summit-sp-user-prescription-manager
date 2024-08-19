@@ -3,7 +3,10 @@
     $product = $args['product'];
     $top_up_product = get_field('select_top_up_product', $product->get_id());
 
-    $one_time_product = $top_up_product ? $top_up_product : $product;
+    $one_time_product = $top_up_product ? wc_get_product($top_up_product->ID) : $product;
+    if (isset($_GET['debug'])) {
+        var_dump($one_time_product);
+    }
     $product_name = sp_get_product_name($product->get_id());
     $active_until_date = !empty($args['active_date']) && strtotime($args['active_date']) !== false 
     ? date("M. d, Y", strtotime($args['active_date'])) 
@@ -13,6 +16,7 @@
     $url = $custom_redirect ? get_permalink($custom_redirect) : get_term_link($product_category, 'product_cat');
 
     $subscription = sp_upm_user_active_treatments()->get_product_subscription($product->get_id());
+    $bmi_metrics = Sp_Weight_Loss::get_bmi_metrics();
 ?>
 <div class="active-treatments-wrapper active-treatments-wrapper--<?php echo slugify($product_category->name); ?> active-treatments-wrapper--mens-health">
     <div class="active-treatments-items">
@@ -30,10 +34,10 @@
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($top_up_product->ID), 'Buy - One Time'); ?>
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($product->get_id()), 'Buy - Subscription'); ?>
                         <?php else : ?>
-                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($one_time_product->ID), 'Buy - One Time'); ?>
+                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($one_time_product->get_id()), $top_up_product ? 'Buy - One Time' : 'Buy Now'); ?>
                         <?php endif; ?>
 
-                        <?php if ($product_category->name == 'Weight Loss') : ?>
+                        <?php if ($product_category->name == 'Weight Loss' && ! empty($bmi_metrics)) : ?>
                             <a href="javascript:void(0)" id="btn-bmi-monitoring">BMI Monitoring</a>
                         <?php endif; ?>
 

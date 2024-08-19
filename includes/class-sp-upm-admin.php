@@ -35,6 +35,8 @@ class Sp_User_Prescription_Manager_Admin {
      */
     private $version;
 
+    private $email_from;
+
     /**
      * @var Sp_Upm_Admin_Doctors_Appointments
      */
@@ -75,7 +77,8 @@ class Sp_User_Prescription_Manager_Admin {
      * @since    1.0.0
      */
     public function enqueue_scripts() {
-        wp_register_script( $this->plugin_name, plugin_dir_url( SP_UPM_PLUGIN_FILE ) . 'assets/js/sp-upm-admin.js', array('jquery'), $this->version, true );
+        // wp_register_script( $this->plugin_name, plugin_dir_url( SP_UPM_PLUGIN_FILE ) . 'assets/js/sp-upm-admin.js', array('jquery'), $this->version, true );
+        wp_register_script( $this->plugin_name, plugin_dir_url( SP_UPM_PLUGIN_FILE ) . 'assets/js/sp-upm-admin.js', array('jquery'), rand(0, 9999999), true );
         wp_localize_script( $this->plugin_name, 'sp_upm_ajax', [
             'approve_ajax_nonce'=> wp_create_nonce('sp_upm_approve_ajax_nonce'),
             'delete_ajax_nonce'=> wp_create_nonce('sp_upm_delete_ajax_nonce'),
@@ -314,9 +317,8 @@ class Sp_User_Prescription_Manager_Admin {
      * @param int $product_id
      * @param int $treatment_id
      * 
-     * @return void
      */
-    public function send_approved_prescription_email(int $user_id, int $product_id, int $treatment_id, int $prescriber_id) : void
+    public function send_approved_prescription_email(int $user_id, int $product_id, int $treatment_id, int $prescriber_id)
     {
         $treatment = get_term($treatment_id, 'product_cat');
         $is_nrt = $treatment_id == 58;
@@ -326,13 +328,16 @@ class Sp_User_Prescription_Manager_Admin {
         $prescriber = get_post($prescriber_id);
 
         $email_from = get_term_meta($treatment_id, 'email_from', true);
-        $reply_to = get_term_meta($treatment_id, 'email_reply_to', true);
+        $email_from = !empty($email_from) ? $email_from : 'menshealth@summitpharma.com.au';
+
+        $reply_to = get_term_meta($treatment_id, 'reply_to', true);
+        $reply_to = !empty($reply_to) ? $reply_to : 'menshealth@summitpharma.com.au';
+
         $subject = get_term_meta($treatment_id, 'email_subject', true);
-        $subject = ! empty($subject) ? $subject : "Exciting News! ({$treatment->name} - {$product->get_name()}) Approved for You!";
+        $subject = ! empty($subject) ? $subject : "Exciting News! {$treatment->name} - Approved For You!";
 
         $headers   = array();
-        $headers[] = sprintf( 'From: %1$s <%2$s>', "SummitPharma", ! empty($email_from) ? $email_from : 'menshealth@summitpharma.com.au' );
-        $headers[] = sprintf( 'Reply-To: %1$s <%2$s>', "SummitPharma", ! empty($reply_to) ? $reply_to : 'menshealth@summitpharma.com.au'  );
+        $headers[] = sprintf( 'Reply-To: %1$s <%2$s>\r\n', "SummitPharma", '<menshealth@summitpharma.com.au>'  );
         $headers[] = 'Content-Type: text/html; charset=UTF-8';
 
         $content = $this->get_email_approved_prescription_html([
@@ -340,10 +345,60 @@ class Sp_User_Prescription_Manager_Admin {
             'customer_name' => $user->first_name,
             'concern' => $treatment->name,
             'prescriber' => $prescriber->post_title,
-            'is_starter_kit' => $is_nrt
+            'is_starter_kit' => $is_nrt,
+            'contact_email' => $reply_to
         ]);
 
-        wp_mail( $user->user_email, $subject, $content, $headers );
+        $this->set_from($email_from);
+
+        add_filter( 'wp_mail_from', [$this, 'get_email_from'] );
+        add_filter( 'wp_mail_from_name', [$this, 'get_from_name'] );
+
+        $mail = wp_mail( $user->user_email, $subject, $content, $headers );
+
+        remove_filter( 'wp_mail_from', [$this, 'get_email_from'] );
+        remove_filter('wp_mail_from_name', [$this, 'get_from_name']);
+
+        return $mail;
+    }
+
+    /**
+     * Get the email content in HTML format.
+     *
+     * @return string
+     */
+    public function get_from_name() {
+        return 'SummitPharma';
+    }
+
+    /**
+     * Get the email content in HTML format.
+     *
+     * @return string
+     */
+    public function get_email_from() {
+        return $this->email_from;
+    }
+
+    /**
+     * Get the email content in HTML format.
+     *
+     * @return string
+     */
+    public function set_from($emal_from) {
+        $this->email_from = $emal_from;
+    }
+
+    /**
+     * Get email headers.
+     *
+     * @return string
+     */
+    public function get_headers() {
+        $header = 'Content-Type: Content-Type: text/html; charset=UTF-8' . "\r\n";
+        $header .= 'Reply-to: SummitPharma' . ' <' . 'info@summitpharma.com.au' . ">\r\n";
+
+        return $header;
     }
 
     public function get_email_approved_prescription_html(array $args) {
@@ -354,7 +409,6 @@ class Sp_User_Prescription_Manager_Admin {
         } else {
             sp_upm_get_template_part('/emails/content', 'email-approved-prescription', $args);
         }
-            
 
         return ob_get_clean();
     }
