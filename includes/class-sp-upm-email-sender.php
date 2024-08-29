@@ -28,10 +28,10 @@ class Sp_Upm_Email_Sender {
         $this->subject = $subject;
     }
 
-    public function setContent($message) {
+    public function setContent($message, $style = null) {
         ob_start();
 
-        sp_upm_get_template_part('/emails/content', 'email', ['message' => $message]);
+        sp_upm_get_template_part('/emails/content', 'email', ['message' => $message, 'style' => $style]);
 
         $message = ob_get_clean();
 

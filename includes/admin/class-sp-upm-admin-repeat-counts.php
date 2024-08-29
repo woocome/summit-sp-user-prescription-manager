@@ -113,34 +113,34 @@ class Sp_Upm_Admin_Repeat_Counts extends SP_UPM_DB {
     }
 
     public function create_database_table() {
-		global $wpdb;
+        global $wpdb;
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		$charset_collate = $wpdb->get_charset_collate();
+        $charset_collate = $wpdb->get_charset_collate();
 
-		// Check if table exists
-		if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name) {
-			// SQL query to create the table
-			$sql = "CREATE TABLE {$this->table_name} (
-				id INT AUTO_INCREMENT PRIMARY KEY,
-				user_id INT NOT NULL,
-				order_id INT NOT NULL,
-				treatment_id INT NOT NULL,
-				product_id INT NOT NULL,
-				count INT NOT NULL,
-				appointment_id INT NULL,
-				meta LONGTEXT NULL,
-				transaction_type INT DEFAULT 1,
-				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-				deleted_at TIMESTAMP NULL
-			) {$charset_collate};";
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name) {
+            // SQL query to create the table
+            $sql = "CREATE TABLE {$this->table_name} (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                order_id INT NOT NULL,
+                treatment_id INT NOT NULL,
+                product_id INT NOT NULL,
+                count INT NOT NULL,
+                appointment_id INT NULL,
+                meta LONGTEXT NULL,
+                transaction_type INT DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                deleted_at TIMESTAMP NULL
+            ) {$charset_collate};";
 
-			// Execute the SQL query
-			dbDelta( $sql );
-		}
-	}
+            // Execute the SQL query
+            dbDelta( $sql );
+        }
+    }
 
     /**
      * Record the initial treatment count

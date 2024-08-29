@@ -1,4 +1,7 @@
 <?php
+
+use SP_NaturalTherapy\Admin\McPrescriptions;
+
 /**
  * User Active Treatments
  *
@@ -65,6 +68,11 @@ class Sp_Upm_User_Active_Treatments
             $product = wc_get_product($prescribed_medication_id);
             
             if ($product->get_status() != 'private') continue;
+
+            $user_id = get_current_user_id();
+            $mc_prescriptions = $product_category->slug == 'medical-cannabis' ? McPrescriptions::get_mc_prescriptions($user_id) : null;
+
+            $prescription['mc_prescriptions'] = $mc_prescriptions;
 
             sp_upm_get_template_part('content', 'mc-active-treatments-item', $prescription);
         }

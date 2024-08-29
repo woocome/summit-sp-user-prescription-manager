@@ -23,6 +23,10 @@
                         <a href="<?= esc_url($url); ?>" class="no-lightbox sp-active-treatments-button sp-active-treatments-button--change-medication sp-second-button">
                             <div class="sp-active-treatment-icon"><span class="sp-active-treatment-label">Buy Now</span></div>
                         </a>
+
+                        <?php if (isset($args['mc_prescriptions']) && !empty($args['mc_prescriptions'])) : ?>
+                            <a href="javascript:void(0)" id="btn-mc-prescriptions" class="at-content-btn-link">Prescriptions</a>
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -32,35 +36,6 @@
                     </div>
                 </div>
             </div>
-            <?php if (! empty($mc_prescriptions) && is_array($mc_prescriptions)) : ?>
-            <div class="medication-details">
-                <div class="medication-table">
-                    <div class="product-medication-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Medication</th>
-                                    <th>Repeats</th>
-                                    <th>Expiration Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($mc_prescriptions as $prescription) : ?>
-                                    <?php
-                                        $_medication_id = absint($prescription['prescribed_medication']);
-                                    ?>
-                                <tr>
-                                    <td><?= get_field('product', $_medication_id) ? get_the_title(get_field('product', $_medication_id)) : get_the_title($_medication_id); ?></td>
-                                    <td style="text-align: center;"><?= $prescription['repeats_count']; ?></td>
-                                    <td style="text-align: center;"><?= $prescription['expiration_date']; ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
         </div>
     </div>
 </div>

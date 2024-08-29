@@ -1,4 +1,5 @@
 <?php
+
     $product_category = $args['prescribed_categories'];
     $product = $args['product'];
     $top_up_product = get_field('select_top_up_product', $product->get_id());
@@ -38,7 +39,11 @@
                         <?php endif; ?>
 
                         <?php if ($product_category->name == 'Weight Loss' && ! empty($bmi_metrics)) : ?>
-                            <a href="javascript:void(0)" id="btn-bmi-monitoring">BMI Monitoring</a>
+                            <a href="javascript:void(0)" id="btn-bmi-monitoring at-content-btn-link">BMI Monitoring</a>
+                        <?php endif; ?>
+
+                        <?php if (isset($args['mc_prescriptions']) && !empty($args['mc_prescriptions'])) : ?>
+                            <a href="javascript:void(0)" id="btn-mc-prescriptions" class="at-content-btn-link">Prescriptions</a>
                         <?php endif; ?>
 
                         <?php // sp_upm_get_template_part('content', 'change-medication-link', ['product' => $product]); ?>
