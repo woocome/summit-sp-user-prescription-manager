@@ -31,15 +31,14 @@
                         <a href="<?= esc_url($url); ?>" class="no-lightbox sp-active-treatments-button sp-active-treatments-button--change-medication sp-second-button">
                             <div class="sp-active-treatment-icon">
                                 <span class="sp-active-treatment-label">
-                                    <?php if ($product_category->slug == 'medical-cannabis' && ($interval && $interval->invert === 1)) : ?>
-                                        Renew Script
+                                    <?php if ($product_category->slug == 'medical-cannabis') : ?>
+                                        <?php echo $interval->invert === 1 ? 'Renew Script' : 'Buy Now'; ?>
                                     <?php else: ?>
                                         Buy Now
                                     <?php endif; ?>
                                 </span>
                             </div>
                         </a>
-
                         <?php if (isset($args['mc_prescriptions']) && !empty($args['mc_prescriptions'])) : ?>
                             <a href="javascript:void(0)" id="btn-mc-prescriptions" class="at-content-btn-link">Prescriptions</a>
                         <?php endif; ?>
