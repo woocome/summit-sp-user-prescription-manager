@@ -6,7 +6,7 @@
     $treatment_id = absint($args['treatment_id']);
     $prescreening_form = get_field( 'category_wp_form_url', 'product_cat_' . $treatment_id );
     $support_email = get_field( 'email_reply_to', 'product_cat_' . $treatment_id );
-    $support_email = empty($support_email) ? 'menshealth@summitpharma.com.au' : $support_email;
+    $support_email = empty($support_email) ? 'consults@summitpharma.com.au' : $support_email;
 
     $treatment = get_term_by('id', $treatment_id, 'product_cat');
 ?>

@@ -94,7 +94,7 @@ class Sp_Upm_Starter_Kit
         if ($response['success']) wp_send_json_success(['redirect_url' => $redirect_url,]);
 
         // Error adding products to cart
-        wp_send_json_error(['message' => $response['message'] ?? 'Something went wrong.']);
+        wp_send_json_error(['message' => $response['message'] ?? json_encode($response)]);
     }
 
     private static function reset_cart() {

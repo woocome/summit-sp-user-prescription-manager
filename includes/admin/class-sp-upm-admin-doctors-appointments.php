@@ -511,8 +511,13 @@ class Sp_Upm_Admin_Doctors_Appointments {
     }
 
     public function get_doctor_id_by_form_id($form_id) {
+		$doctor_id = null;
+
         $product_category = $this->get_assigned_product_category_by_form_id($form_id);
-        $doctor_id = get_term_meta($product_category->term_id, 'assigned_doctor', true);
+
+		if ($product_category) {
+        	$doctor_id = get_term_meta($product_category->term_id, 'assigned_doctor', true);
+		}
 
         return $doctor_id;
     }
@@ -558,7 +563,8 @@ class Sp_Upm_Admin_Doctors_Appointments {
         $appointment_dates = wp_json_encode($this->format_date_and_time_entries_for_wpform($doctor_id));
         $available_weekdays = wp_json_encode($this->get_day_of_the_week_availability($doctor_id));
         $available_time_range = wp_json_encode($this->get_time_range_availability($doctor_id) ?? []);
-        $disabled_dates = wp_json_encode(array_column($this->get_disabled_dates($doctor_id), 'disable_date'));
+		$disabled_dates = $this->get_disabled_dates($doctor_id);
+        $disabled_dates = wp_json_encode($disabled_dates ? array_column($disabled_dates, 'disable_date') : []);
         $disabled_date_time_range = wp_json_encode($this->get_disabled_date_time_range($doctor_id));
 		$disabled_date_time_range = $form_id == 41922 ? wp_json_encode([]) : $disabled_date_time_range;
 
@@ -745,7 +751,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
                 $treatment_product_id = absint($treatment['prescribed_medication']);
                 $treatment_category = $treatment['prescribed_categories'];
 
-                if (($product_id == $treatment_product_id || $top_up_product->ID == $treatment_product_id) && $treatment_category) {
+                if (($product_id == $treatment_product_id || ($top_up_product && $top_up_product->ID == $treatment_product_id)) && $treatment_category) {
                     return $treatment;
                 }
             }
@@ -807,8 +813,8 @@ class Sp_Upm_Admin_Doctors_Appointments {
      */
     public function admin_paid_consultation_notification($args) {
         $headers   = array();
-        $headers[] = sprintf( 'From: %1$s <%2$s>', "SummitPharma", "menshealth@summitpharma.com.au" );
-        $headers[] = sprintf( 'Reply-To: %1$s <%2$s>', "SummitPharma", "menshealth@summitpharma.com.au" );
+        $headers[] = sprintf( 'From: %1$s <%2$s>', "SummitPharma", "consults@summitpharma.com.au" );
+        $headers[] = sprintf( 'Reply-To: %1$s <%2$s>', "SummitPharma", "consults@summitpharma.com.au" );
         $headers[] = 'Content-Type: text/html; charset=UTF-8';
 
         ob_start();
@@ -817,7 +823,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
         $content = ob_get_clean();
 
-        wp_mail( 'menshealth@summitpharma.com.au', "Confirmation of Payment for Telehealth Consultation!", $content, $headers );
+        wp_mail( 'consults@summitpharma.com.au', "Confirmation of Payment for Telehealth Consultation!", $content, $headers );
     }
     
     public function check_if_eligible_for_rebooking( $product_cat_id ) {

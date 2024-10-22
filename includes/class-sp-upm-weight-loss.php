@@ -43,7 +43,10 @@ class Sp_Weight_Loss
         $order = wc_get_order($order_id);
         if (! $order) return;
 
-        $user_id = $order->get_user_id();
+        $has_weightloss = false;
+        $customer = $order->get_user();
+        $user_id = $customer->ID;
+        $purchased_times =  absint(get_user_meta( $user_id, 'wl_purchased_times', true ));
 
         // Get and Loop Over Order Items
         foreach ( $order->get_items() as $item_id => $item ) {
@@ -59,6 +62,8 @@ class Sp_Weight_Loss
             // get first key, based on the meta data structure
             $firstKey = array_key_first($weight_loss_meta);
             $fields = $weight_loss_meta[$firstKey]['fields'];
+
+            $has_weightloss = true;
 
             $data = [
                 'product' => $item->get_product_id(),
@@ -86,6 +91,27 @@ class Sp_Weight_Loss
                 $item->save();
             }
         }
+
+        $_wl_order_processed = wc_string_to_bool($order->get_meta( '_wl_order_processed' ));
+        if ($_wl_order_processed || !$has_weightloss) return;
+
+        $purchased_times = $purchased_times+1;
+        update_user_meta( $user_id, 'wl_purchased_times', $purchased_times );
+
+        $mailchimp = sp_upm_mailchimp('fc1a219d30');
+        $tags = $mailchimp->get_existing_mailchimp_tags( $customer->user_email);
+
+        $tags[] = [
+            'name' => "CUSTOMER PURCHASED - WL - $purchased_times",
+            'status' => 'active'
+        ];
+
+        $mailchimp->update_mailchimp_tags($tags, $customer->user_email);
+
+        $order->update_meta_data('_wl_order_processed', 'true');
+
+        $purchased_date = date('d/m/Y');
+        update_user_meta( $user_id, '_wl_last_purchased_date', $purchased_date );
     }
 
     public static function add_row($user_id, $data)

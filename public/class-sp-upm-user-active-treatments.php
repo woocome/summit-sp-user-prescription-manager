@@ -66,7 +66,6 @@ class Sp_Upm_User_Active_Treatments
             if (! $prescribed_medication_id) continue;
 
             $product = wc_get_product($prescribed_medication_id);
-            
             if ($product->get_status() != 'private') continue;
 
             $user_id = get_current_user_id();
@@ -94,7 +93,7 @@ class Sp_Upm_User_Active_Treatments
         $prescriptions = self::getCurrentUserPrescriptions();
 
         if (empty($prescriptions) || !is_array($prescriptions)) {
-            return '';
+            return 'No prescriptions found.';
         }
 
         self::startOutputBuffering();
@@ -103,7 +102,7 @@ class Sp_Upm_User_Active_Treatments
             $product_id = absint($prescription['prescribed_medication']);
             $product = wc_get_product($product_id);
 
-            if (!$product_id || ($product && $product->get_status() === 'private')) continue;
+            if (!$product_id || (isset($product) && $product->get_status() === 'private')) continue;
 
             $prescription['product'] = $product;
 
@@ -113,6 +112,9 @@ class Sp_Upm_User_Active_Treatments
         $content = self::getBufferedOutput();
 
         self::startOutputBuffering();
+
+        echo self::top_panel();
+
         self::outputTreatmentWrapperStart();
 
         echo $content;
@@ -120,7 +122,7 @@ class Sp_Upm_User_Active_Treatments
         self::outputTreatmentWrapperEnd();
         $result = self::getBufferedOutput();
 
-        return ! empty($content) ? $result : '';
+        return ! empty($result) ? $result : 'No prescriptions found.';
     }
 
     public static function nrt() {

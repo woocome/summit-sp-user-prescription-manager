@@ -5,10 +5,8 @@
     $top_up_product = get_field('select_top_up_product', $product->get_id());
 
     $one_time_product = $top_up_product ? wc_get_product($top_up_product->ID) : $product;
-    if (isset($_GET['debug'])) {
-        var_dump($one_time_product);
-    }
-    $product_name = sp_get_product_name($product->get_id());
+
+	$product_name = sp_get_product_name($product->get_id());
     $active_until_date = !empty($args['active_date']) && strtotime($args['active_date']) !== false 
     ? date("M. d, Y", strtotime($args['active_date'])) 
     : '';
@@ -18,6 +16,17 @@
 
     $subscription = sp_upm_user_active_treatments()->get_product_subscription($product->get_id());
     $bmi_metrics = Sp_Weight_Loss::get_bmi_metrics();
+    $is_weight_loss = $product_category->name == 'Weight Loss';
+	$is_wl_return_consult = false;
+
+	if (isset($args['active_date']) && !empty($args['active_date'])) {
+		$active_date = new DateTime($args['active_date']);
+		$current_date = new DateTime();
+		$interval = $current_date->diff($active_date);
+
+		// if invert == 1, the date expired
+		$is_wl_return_consult = $is_weight_loss && (($interval->invert == 0 && $interval->days <= 7) || $interval->invert == 1);
+	}
 ?>
 <div class="active-treatments-wrapper active-treatments-wrapper--<?php echo slugify($product_category->name); ?> active-treatments-wrapper--mens-health">
     <div class="active-treatments-items">
@@ -34,13 +43,15 @@
                         <?php if ($product->is_type('variable-subscription') && !$subscription) : ?>
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($top_up_product->ID), 'Buy - One Time'); ?>
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($product->get_id()), 'Buy - Subscription'); ?>
+                        <?php elseif ($is_wl_return_consult): ?>
+                            <?php sp_upm_user_active_treatments()::render_myaccount_panel_button('/wl-return-consult/', 'Book Return Consult'); ?>
                         <?php else : ?>
                             <?php sp_upm_user_active_treatments()::render_myaccount_panel_button(get_permalink($one_time_product->get_id()), $top_up_product ? 'Buy - One Time' : 'Buy Now'); ?>
                         <?php endif; ?>
-
-                        <?php if ($product_category->name == 'Weight Loss' && ! empty($bmi_metrics)) : ?>
-                            <a href="javascript:void(0)" id="btn-bmi-monitoring at-content-btn-link">BMI Monitoring</a>
-                        <?php endif; ?>
+						
+						<?php if ($is_weight_loss) : ?>
+                            <a href="javascript:void(0)" id="btn-bmi-monitoring" class="at-content-btn-link">BMI Monitoring</a>
+						<?php endif; ?>
 
                         <?php if (isset($args['mc_prescriptions']) && !empty($args['mc_prescriptions'])) : ?>
                             <a href="javascript:void(0)" id="btn-mc-prescriptions" class="at-content-btn-link">Prescriptions</a>

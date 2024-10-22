@@ -328,16 +328,16 @@ class Sp_User_Prescription_Manager_Admin {
         $prescriber = get_post($prescriber_id);
 
         $email_from = get_term_meta($treatment_id, 'email_from', true);
-        $email_from = !empty($email_from) ? $email_from : 'menshealth@summitpharma.com.au';
+        $email_from = !empty($email_from) ? $email_from : 'consults@summitpharma.com.au';
 
         $reply_to = get_term_meta($treatment_id, 'reply_to', true);
-        $reply_to = !empty($reply_to) ? $reply_to : 'menshealth@summitpharma.com.au';
+        $reply_to = !empty($reply_to) ? $reply_to : 'consults@summitpharma.com.au';
 
         $subject = get_term_meta($treatment_id, 'email_subject', true);
         $subject = ! empty($subject) ? $subject : "Exciting News! {$treatment->name} - Approved For You!";
 
         $headers   = array();
-        $headers[] = sprintf( 'Reply-To: %1$s <%2$s>\r\n', "SummitPharma", '<menshealth@summitpharma.com.au>'  );
+        $headers[] = sprintf( 'Reply-To: %1$s <%2$s>\r\n', "SummitPharma", '<consults@summitpharma.com.au>'  );
         $headers[] = 'Content-Type: text/html; charset=UTF-8';
 
         $content = $this->get_email_approved_prescription_html([

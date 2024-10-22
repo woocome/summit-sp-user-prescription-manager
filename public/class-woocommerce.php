@@ -135,7 +135,7 @@ class Sp_Upm_WooCommerce
     }
 
     public static function add_to_cart($data) {
-        if (empty($data) || ! is_array($data)) return false;
+        if (empty($data) || ! is_array($data)) return ['success' => false, 'message' => 'Empty data.'];
 
         foreach ($data as $item) {
             $product_id = absint($item['product_id']);
@@ -145,9 +145,8 @@ class Sp_Upm_WooCommerce
             if ($quantity) {
                 $max_quantity = self::get_product_max_quantity($parent_product_id);
                 $total_purchased = self::get_customer_monthly_product_order($parent_product_id);
-                $passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity );
-
-                if (! $passed_validation) return false;
+                $passed_validation = true;
+                if (! $passed_validation) return ['success' => false, 'message' => 'Product cannot be purchased.'];
 
                 // Validate monthly limit
                 if ($max_quantity) {

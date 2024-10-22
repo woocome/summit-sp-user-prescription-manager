@@ -40,8 +40,8 @@ class Sp_Upm_Email_Sender {
 
     private function setDefaultHeaders() {
         $this->headers = array();
-        $this->headers[] = sprintf('From: %1$s <%2$s>', "SummitPharma", !empty($this->from) ? $this->from : 'menshealth@summitpharma.com.au');
-        $this->headers[] = sprintf('Reply-To: %1$s <%2$s>', "SummitPharma", !empty($this->replyTo) ? $this->replyTo : 'menshealth@summitpharma.com.au');
+        $this->headers[] = sprintf('From: %1$s <%2$s>', "SummitPharma", !empty($this->from) ? $this->from : 'consults@summitpharma.com.au');
+        $this->headers[] = sprintf('Reply-To: %1$s <%2$s>', "SummitPharma", !empty($this->replyTo) ? $this->replyTo : 'consults@summitpharma.com.au');
         $this->headers[] = 'Content-Type: text/html; charset=UTF-8';
     }
 

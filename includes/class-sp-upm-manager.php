@@ -176,7 +176,6 @@ class Sp_User_Prescription_Manager {
 
 		Sp_Weight_Loss::init_hooks();
 	}
-
 	/**
 	 * Register all of the hooks related to the public-facing functionality
 	 * of the plugin.

@@ -96,7 +96,7 @@ class Class_Sp_Upm_Public {
          * between the defined hooks and the functions defined in this
          * class.
          */
-         wp_register_script( $this->plugin_name, plugin_dir_url( SP_UPM_PLUGIN_FILE ) . 'assets/js/sp-upm-public.js', array( 'jquery' ), $this->version, false );
+         wp_register_script( $this->plugin_name, plugin_dir_url( SP_UPM_PLUGIN_FILE ) . 'assets/js/sp-upm-public.js', array( 'jquery' ), $this->version, true );
          wp_localize_script( $this->plugin_name, 'sp_upm_ajax_public', [
             'ajax_nonce'=> wp_create_nonce('sp_upm_ajax_nonce'),
             'admin_url' => admin_url( '/admin-ajax.php' ),

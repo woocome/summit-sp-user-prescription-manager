@@ -182,6 +182,10 @@ class Sp_Upm_Admin_Consultation_Booking {
         }
     }
 
+    public static function has_existing_treatment( $product_cat_id ) {
+        global $wpdb;
+    }
+
     /** Singleton instance */
     public static function get_instance()
     {

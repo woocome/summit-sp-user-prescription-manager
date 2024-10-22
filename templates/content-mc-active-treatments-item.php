@@ -7,6 +7,14 @@
     $panel_card_info = get_field('my_account_card_tagline', 'product_cat_' . $product_category->term_id);
     $custom_redirect = get_term_meta($product_category->term_id, 'buy_now_redirection_url', true);
     $url = $custom_redirect ? get_permalink($custom_redirect) : get_term_link($product_category, 'product_cat');
+    $interval = false;
+
+    if (isset($args['active_date']) && !empty($args['active_date'])) {
+        $active_date = new DateTime($args['active_date']);
+        $current_date = new DateTime();
+        $interval = $current_date->diff($active_date);
+        $url = $interval->invert === 1 ? 'https://kushclinics.com.au/returning-consults/' : $url;
+    }
 ?>
 <div class="active-treatments-wrapper active-treatments-wrapper--<?php echo slugify($product_category->name); ?>">
     <div class="active-treatments-items">
@@ -21,7 +29,15 @@
                     <?php if ($args['prescribed_medication']) : ?>
                     <div class="at-items active-date-wrapper active-treatments-cta-wrapper sp-cp-cta">
                         <a href="<?= esc_url($url); ?>" class="no-lightbox sp-active-treatments-button sp-active-treatments-button--change-medication sp-second-button">
-                            <div class="sp-active-treatment-icon"><span class="sp-active-treatment-label">Buy Now</span></div>
+                            <div class="sp-active-treatment-icon">
+                                <span class="sp-active-treatment-label">
+                                    <?php if ($product_category->slug == 'medical-cannabis' && ($interval && $interval->invert === 1)) : ?>
+                                        Renew Script
+                                    <?php else: ?>
+                                        Buy Now
+                                    <?php endif; ?>
+                                </span>
+                            </div>
                         </a>
 
                         <?php if (isset($args['mc_prescriptions']) && !empty($args['mc_prescriptions'])) : ?>
