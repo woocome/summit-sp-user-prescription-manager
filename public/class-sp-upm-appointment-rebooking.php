@@ -129,7 +129,3 @@ class Sp_Upm_Appointment_Rebooking
         return self::$instance;
     }
 }
-
-function sp_upm_appointment_rebooking() {
-    return Sp_Upm_Appointment_Rebooking::get_instance();
-}

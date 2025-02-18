@@ -121,6 +121,7 @@ class Sp_User_Prescription_Manager {
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/sp-upm-initialize-methods.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/sp-upm-core-functions.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sp-upm-db.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sp-upm-email-sender.php';

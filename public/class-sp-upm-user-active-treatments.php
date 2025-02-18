@@ -106,6 +106,7 @@ class Sp_Upm_User_Active_Treatments
             if (!$product_id || ($product && $product->get_status() === 'private')) continue;
 
             $prescription['product'] = $product;
+            $prescription['is_wl_return_consult'] = self::is_wl_return_consult($prescription['active_date']);
 
             sp_upm_get_template_part('content', 'active-treatments-item', $prescription);
         }
@@ -159,6 +160,7 @@ class Sp_Upm_User_Active_Treatments
 
     public static function get_product_subscription($product_id) {
         $subscriptions = self::user_active_subscriptions();
+        if (! $subscriptions) return false;
 
         foreach ( $subscriptions as $subscription ) {
             // Check that the subscription has the product we're interested in.
@@ -181,12 +183,39 @@ class Sp_Upm_User_Active_Treatments
     private static function user_active_subscriptions() {
         $user_id = get_current_user_id();
 
-        $subscriptions = wcs_get_subscriptions([
-            'customer_id' => $user_id,
-            'subscription_status' => 'active',
-        ]);
+        if (function_exists('wcs_get_subscriptions')) {
+            $subscriptions = wcs_get_subscriptions([
+                'customer_id' => $user_id,
+                'subscription_status' => 'active',
+            ]);
+    
+            return $subscriptions;
+        }
 
-        return $subscriptions;
+        return false;
+    }
+
+    public static function is_wl_return_consult($active_until_date) {
+        $interval = null;
+    
+        if (isset($active_until_date) && !empty($active_until_date)) {
+            $active_date = new DateTime($active_until_date);
+            $current_date = new DateTime();
+            $interval = $current_date->diff($active_date);
+        }
+
+        $user_id = get_current_user_id();
+        $purchased_date = get_user_meta( $user_id, '_wl_last_purchased_date', true );
+        $purchased_times = absint(get_user_meta( $user_id, 'wl_purchased_times', true));
+
+        if ($purchased_date === '' || $purchased_times == 0) return false;
+
+        $today = new DateTime();
+        $targetDate = DateTime::createFromFormat('d/m/Y', $purchased_date);
+        $threeWeeksAgo = (clone $today)->modify('-3 weeks');
+
+        // Calculate the date 3 weeks ago
+        return (($targetDate <= $threeWeeksAgo && $purchased_times <= 1) || ($purchased_times > 1 && $interval && $interval->invert == 1));
     }
 
     public static function render_myaccount_panel_button($url, $label) {
@@ -201,8 +230,4 @@ class Sp_Upm_User_Active_Treatments
 
         return self::$instance;
     }
-}
-
-function sp_upm_user_active_treatments() {
-    return Sp_Upm_User_Active_Treatments::get_instance();
 }

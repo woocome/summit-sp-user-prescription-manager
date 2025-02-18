@@ -163,7 +163,3 @@ class Sp_Upm_Admin_Repeat_Counts extends SP_UPM_DB {
         return self::$instance;
     }
 }
-
-function sp_upm_repeat_counts() {
-    return Sp_Upm_Admin_Repeat_Counts::get_instance();
-}

@@ -111,6 +111,7 @@ class Sp_Weight_Loss
         $order->update_meta_data('_wl_order_processed', 'true');
 
         $purchased_date = date('d/m/Y');
+
         update_user_meta( $user_id, '_wl_last_purchased_date', $purchased_date );
     }
 
@@ -137,6 +138,16 @@ class Sp_Weight_Loss
         sp_upm_get_template_part('/public/content', 'bmi-metrics', ['bmi_metrics' => $bmi_metrics]);
 
         return ob_get_clean();
+    }
+
+    public static function is_weight_loss($termId) {
+        return $termId == 92;
+    }
+
+    public static function get_wl_purchased_times($user_id = null) {
+        $user_id = $user_id ?: get_current_user_id();
+
+        return (int) get_user_meta( $user_id, 'wl_purchased_times', true );
     }
 
     /** Singleton instance */

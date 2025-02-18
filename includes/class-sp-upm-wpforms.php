@@ -75,7 +75,3 @@ class Sp_Upm_Wpforms
         return self::$instance;
     }
 }
-
-function sp_upm_wpforms() {
-    return Sp_Upm_Wpforms::get_instance();
-}

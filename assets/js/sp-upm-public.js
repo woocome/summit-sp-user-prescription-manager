@@ -8,39 +8,81 @@
             this.proceedToCheckout();
             this.onCloseButtonClick();
             this.onCartRefreshed();
+            this.computeTotal();
+            this.triggerFreeBattery();
+            this.setNRTPriceTier();
+        },
+        setStartreckPremium: function() {
+            const startreckPremium = document.getElementById('shipping_method_0_flat_rate12');
+
+            if (startreckPremium && startreckPremium.checkVisibility()) {
+                startreckPremium.click()
+            }
         },
         onStarterKitQuantityChange: function(e) {
             // Change event is fine on mobile devices
             $('.sp-sk-quantity-js').on('change', function() {
-                app.computeTotal();
+                setTimeout(() => {
+                  app.computeTotal();
+                }, 100);
             });
         },
         computeTotal: function() {
             let total = 0;
             app.starterKitData = [];
-    
+
             $('.sp-sk-quantity-js').each(function() {
                 const quantity = parseInt($(this).val());
-    
+
                 if (quantity) {
                     const $parent = $(this).parents('.nrt-product-cusstomization-wrapper');
                     const product_id = $(this).parents('.product-custom-item').data().productId;
                     const price = parseFloat($parent.data().price);
-    
+
                     const itemTotal = price * quantity;
-    
+
                     app.starterKitData.push({
                         product_id: product_id,
                         quantity: quantity
                     });
-    
+
                     total += itemTotal;
                 }
             });
-    
+
             app.totalPrice = total;
-    
+
             $('#starter-kit-total-price .elementor-heading-title').text(`Total: $${app.totalPrice.toFixed(2)}`);
+
+            if (total) {
+              jQuery('#starter-kit-add-to-cart, #starter-kit-checkout').removeAttr('disabled')
+            }
+        },
+        setNRTPriceTier: function() {
+          $('.nrt-choose--nrt-pods .sp-sk-quantity-js').on('change', function() {
+            const totalPodsQuantity = app.getPodsTotalQuantity();
+            console.log(totalPodsQuantity)
+            const $parent = $(this).parents('.nrt-product-cusstomization-wrapper');
+
+            if (totalPodsQuantity >= 3 && totalPodsQuantity <= 4) {
+              $parent.data().price = '22.50';
+            } else if (totalPodsQuantity >= 5) {
+              $parent.data().price = '20.00';
+            } else {
+              $parent.data().price = '25.00';
+            }
+
+            $('.nrt-choose--nrt-pods .nrt-heading span').text(`$${$parent.data().price} / each`);
+          });
+        },
+        getPodsTotalQuantity: function() {
+          let quantity = 0;
+
+          $('.nrt-choose--nrt-pods .sp-sk-quantity-js').each(function() {
+            quantity += parseInt($(this).val());
+          });
+
+          return quantity;
         },
         proceedToCheckout: function() {
             // Add support for both click and touchstart to work on mobile devices
@@ -83,33 +125,43 @@
                     error: function(response) {
                         $('.sp-upm-loading-indicator').removeClass('is-active');
                         $('[data-action-type] .elementor-button').removeClass('is-disabled');
-    
+
                         if (response) console.log(response);
                     },
                     complete: function({ responseJSON }) {
                         $parentContainer.find('.elementor-button-text').text(buttonText);
-    
+
                         if (responseJSON.data.message) {
                             $(app.modal).addClass('is-active');
                             $('.sp-upm-modal-header-text', app.modal).html(responseJSON.data.header);
                             $('.sp-upm-modal-body', app.modal).html(responseJSON.data.message);
                         }
+
+                        $('.sp-upm-loading-indicator').removeClass('is-active');
                     }
                 });
             });
         },
         validateStarterKit: function() {
             app.computeTotal();
-    
+
+            let isQuantityValidated = true;
+
+            if ($('.nrt-choose--nrt-vaporizer').length) {
+                isQuantityValidated = app.validateNRTStarterKit();
+            } else {
+                isQuantityValidated = app.validateTHCStarterKit();
+            }
+
             // Check if any required product is missing
-            if (app.totalPrice == 0 || !app.validatePanelQuantity()) {
+            if (app.totalPrice == 0 || !isQuantityValidated) {
                 elementorProFrontend.modules.popup.showPopup({ id: 55848 });
                 return false;
             }
-    
+
             return true;
         },
-        validatePanelQuantity: function() {
+        validatePanelQuantity: function(requiredQuantity = 2) {
             const has_previous_order = parseInt(sp_upm_ajax_public.has_previous_nrt);
             if (has_previous_order) return true;
     
@@ -130,12 +182,18 @@
                         }
                     });
                 }
-    
+
                 if (hasRequiredItem) requiredProductsCount++;
             });
-    
+
             // Ensure that the device and pods (required products) have been selected (minimum 2)
-            return requiredProductsCount >= 2;
+            return requiredProductsCount >= requiredQuantity;
+        },
+        validateTHCStarterKit: function() {
+            return this.validatePanelQuantity(1);
+        },
+        validateNRTStarterKit: function() {
+            return this.validatePanelQuantity();
         },
         onCloseButtonClick: function() {
             // Also add touchstart to make it responsive for mobile
@@ -144,12 +202,26 @@
             });
         },
         onCartRefreshed: function() {
-            $('.page-id-29188').on("wc_fragments_refreshed", function() {
+            if (! $('.starter-kit-items').length) return;
+
+            $('body').on("wc_fragments_refreshed", function() {
                 $('#elementor-menu-cart__toggle_button').trigger('click');
                 $('.sp-upm-loading-indicator').removeClass('is-active');
                 $('[data-action-type] .elementor-button').removeClass('is-disabled');
             });
         },
+        triggerFreeBattery: function() {
+            if (! $('.coupon-free_thc_battery').length) return;
+            // $(document.body).trigger('update_checkout');
+            jQuery('body').trigger('update_checkout')
+
+                // var text = $('.coupon-free_thc_battery .woocommerce-Price-amount').text(); // Get the text content
+                // var amount = text.match(/[\d,.]+/); // Extract the number
+                // if (parseInt(amount[0])) return;
+
+                // document.querySelector('.coupon-free_thc_battery .woocommerce-remove-coupon').click()
+            // });
+        }
     };
 
     const WPFormAutoNext = {
@@ -224,7 +296,6 @@
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 e.preventDefault();
-                debugger
 
                 self.$submitButton.click();
             })
@@ -234,5 +305,10 @@
     $(document).ready(function() {
         app.init();
         WPFormAutoNext.init();
+    });
+
+    $(window).on('load', function() {
+        app.triggerFreeBattery();
+        app.setStartreckPremium();
     });
 })(jQuery)

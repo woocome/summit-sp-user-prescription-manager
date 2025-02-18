@@ -136,21 +136,55 @@ class Sp_Upm_WooCommerce
 
     public static function add_to_cart($data) {
         if (empty($data) || ! is_array($data)) return ['success' => false, 'message' => 'Empty data.'];
+        $user_id = get_current_user_id(  );
+        $cart_items = WC()->cart->get_cart();
 
         foreach ($data as $item) {
             $product_id = absint($item['product_id']);
             $parent_product_id = wp_get_post_parent_id($product_id);
             $quantity = absint($item['quantity']);
+            $product_name = get_the_title($parent_product_id);
+            $max_allowed_quantity = absint(get_post_meta($parent_product_id, 'maximum_allowed_quantity', true));
 
             if ($quantity) {
                 $max_quantity = self::get_product_max_quantity($parent_product_id);
+
                 $total_purchased = self::get_customer_monthly_product_order($parent_product_id);
                 $passed_validation = true;
-                if (! $passed_validation) return ['success' => false, 'message' => 'Product cannot be purchased.'];
+
+                if ($max_allowed_quantity && $quantity > $max_allowed_quantity) {
+                    return ['success' => false, 'message' => 'You can only purchase a maximum of ' . $max_allowed_quantity . ' per transaction.'];
+                }
+
+                foreach ($cart_items as $cart_item) {
+                    $_cart_item_product_id = $cart_item['product_id'];
+                    $_cart_item_variation_id = $cart_item['variation_id'];
+                    if ($parent_product_id != $_cart_item_product_id) continue;
+
+                    $_cart_item_quantity = $cart_item['quantity'];
+
+                    if ($max_allowed_quantity && ($quantity + $_cart_item_quantity) > $max_allowed_quantity) {
+                        $passed_validation = false;
+
+                        return ['success' => false, 'message' => "You already have a {$product_name} in your cart."];
+                    }
+                }
+
+                if (function_exists('sp_upm_validate_product_limit_purchase')) {
+                    if (
+                        !sp_upm_validate_product_limit_purchase($user_id, $parent_product_id) ||
+                        !sp_upm_validate_product_limit_purchase($user_id, $product_id)
+                    ) {
+                        $passed_validation = false;
+                    }
+                }
+
+                if (! $passed_validation) {
+                    return ['success' => false, 'message' => sp_upm_limit_reached_message($parent_product_id)];
+                }
 
                 // Validate monthly limit
                 if ($max_quantity) {
-
                     if (! self::validate_monthly_limit($parent_product_id, $total_purchased, $quantity)) {
                         return [
                             'success' => false,
@@ -181,8 +215,4 @@ class Sp_Upm_WooCommerce
 
         return self::$instance;
     }
-}
-
-function sp_upm_woocommerce() {
-    return Sp_Upm_WooCommerce::get_instance();
 }

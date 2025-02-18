@@ -39,3 +39,38 @@ function sp_upm_get_template_part($slug, $name = null, $args = array()) {
 function check_if_product_is_public($product_id) {
     return has_term( 'public', 'product_cat', $product_id) ;
 }
+
+function get_users_by_product_category($category_id) {
+    global $wpdb;
+
+    // Get all child categories of the specified category
+    $category_ids = get_term_children($category_id, 'product_cat');
+    // Add the parent category ID to the array
+    $category_ids[] = $category_id;
+
+    // Convert category IDs array to comma-separated string for the SQL query
+    $category_ids_string = implode(',', array_map('intval', $category_ids));
+
+    $query = $wpdb->prepare("
+        SELECT DISTINCT u.ID, u.user_email, u.display_name
+        FROM {$wpdb->users} u
+        JOIN {$wpdb->postmeta} pm ON pm.meta_value = u.ID AND pm.meta_key = '_customer_user'
+        JOIN {$wpdb->posts} o ON o.ID = pm.post_id
+        JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_id = o.ID
+        JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = oi.order_item_id
+        JOIN {$wpdb->term_relationships} tr ON tr.object_id = oim.meta_value
+        JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+        LEFT JOIN {$wpdb->usermeta} um ON um.user_id = u.ID AND um.meta_key = 'mc_manual_batch_1'
+        WHERE o.post_type = 'shop_order'
+        AND um.meta_value IS NULL
+        AND o.post_status IN ('wc-completed', 'wc-processing')
+        AND oim.meta_key = '_product_id'
+        AND tt.taxonomy = 'product_cat'
+        AND tt.term_id IN ($category_ids_string)
+        AND o.post_date >= '2024-06-01 00:00:00'
+    ");
+
+    $users = $wpdb->get_results($query);
+
+    return $users;
+}

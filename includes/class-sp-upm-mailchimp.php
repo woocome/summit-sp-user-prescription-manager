@@ -51,6 +51,11 @@ class Sp_Upm_Mailchimp
 
         return $response['tags'] ?? false;
     }
+
+    public function add_update_list_member($email, $skip_merge_validation = false)
+    {
+        return self::$mailchimp_api->add_update_list_member($this->list_id, $email, [], $skip_merge_validation);
+    }
 }
 
 function sp_upm_mailchimp($list_id) {

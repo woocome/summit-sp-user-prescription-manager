@@ -96,6 +96,7 @@ class Sp_User_Prescription_Manager_Admin {
     }
 
     public function includes() {
+        include_once SP_UPM_ABSPATH . 'includes/class-sp-upm-medical-cannabis.php';
         include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-admin-doctors-appointments.php';
         include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-admin-consultation-booking.php';
         include_once SP_UPM_ABSPATH . 'includes/admin/class-sp-upm-admin-repeat-counts.php';
@@ -114,6 +115,7 @@ class Sp_User_Prescription_Manager_Admin {
         sp_upm_repeat_counts()->init_hooks();
         sp_upm_consultation_booking()->init();
         Sp_Expired_Prescription::get_instance()->init_hooks();
+        Sp_MedicalCannabis::get_instance()->init_hooks();
     }
 
     /**

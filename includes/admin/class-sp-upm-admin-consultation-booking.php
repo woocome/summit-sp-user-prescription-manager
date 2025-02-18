@@ -34,6 +34,7 @@ class Sp_Upm_Admin_Consultation_Booking {
 
     public function init() {
         add_action('wpforms_process_complete', [$this, 'save_booking_consultations'], 10, 4);
+        add_action('wpforms_process_complete_52734', [$this, 'save_weightloss_return_consults'], 10, 4);
         add_action('wpforms_process_complete_43749', [$this, 'process_nt_submission'], 10, 4);
         add_action('sp_upm_consultation_booking_complete', [$this, 'update_user_allowed_categories'], 10, 2);
         add_action('sp_upm_consultation_booking_complete', [$this, 'add_initial_user_prescription'], 10, 4);
@@ -145,6 +146,67 @@ class Sp_Upm_Admin_Consultation_Booking {
         }
     }
 
+    public function save_weightloss_return_consults($fields, $entry, $form_data, $entry_id) {
+        $user = wp_get_current_user();
+        $user_id = $user->ID;
+        $form_id = absint($form_data['id']);
+
+        $product_cat = $this->sp_upm_wpforms->get_product_category_by_form_id($form_id, 'return_consult_form');
+        if (! $product_cat) return;
+
+        $email_field_id = $this->sp_upm_wpforms->get_field_id_by_name($fields, 'Email', 'email');
+
+        $email = $entry['fields'][$email_field_id];
+
+        if (! $user_id) {
+            $user = get_user_by('email', $email);
+            $user_id = $user->ID;
+        }
+
+        $doctor_id = get_term_meta($product_cat->term_id, 'assigned_doctor', true);
+
+        // get date and time value
+        $date_time_field_id = $this->sp_upm_wpforms->get_field_id_by_name($fields, 'Your Consultation', 'date-time');
+
+        $booking_date_time = $entry['fields'][$date_time_field_id];
+
+        $date = $this->doctors_appointment->convert_date_time($booking_date_time['date'], 'd/m/Y', 'Y-m-d');
+        $time = $this->doctors_appointment->convert_date_time($booking_date_time['time'], 'h:i A', 'H:i:s');
+
+        $row_id = $this->doctors_appointment->create($doctor_id, $form_id, $entry_id, $user, $product_cat, $date, $time);
+
+        if ($row_id) {
+            global $wpdb;
+
+            // Prepare the query with placeholders to safely insert variables
+            $query = $wpdb->prepare(
+                "SELECT meta_key FROM {$wpdb->usermeta} 
+                WHERE meta_key LIKE %s AND meta_value = %d AND user_id = %d",
+                'user_prescriptions_%_prescribed_categories',
+                $product_cat->term_id,
+                $user_id
+            );
+
+            // Fetch a single row
+            $prescription = $wpdb->get_row($query);
+
+            if ($prescription && preg_match('/\d+/', $prescription->meta_key, $matches)) {
+                // Column to update (you can modify as needed)
+                $column = "user_prescriptions_{$matches[0]}_prescribed_medication";
+
+                // Prepare and execute the update query
+                $update_query = $wpdb->prepare(
+                    "UPDATE {$wpdb->usermeta} 
+                    SET meta_value = NULL WHERE meta_key = %s AND user_id = %d",
+                    $column,
+                    $user_id
+                );
+
+                $wpdb->query($update_query);
+            }
+        }
+    }
+
     public function set_is_consultation_free($is_free = false) {
         $this->is_consulation_free = $is_free;
     }
@@ -195,8 +257,4 @@ class Sp_Upm_Admin_Consultation_Booking {
 
         return self::$instance;
     }
-}
-
-function sp_upm_consultation_booking() {
-    return Sp_Upm_Admin_Consultation_Booking::get_instance();
 }

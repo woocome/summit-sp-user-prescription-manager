@@ -32,6 +32,10 @@ function sp_upm_user_active_treatments() {
     return Sp_Upm_User_Active_Treatments::get_instance();
 }
 
+function sp_upm_weightloss() {
+    return Sp_Weight_Loss::get_instance();
+}
+
 function sp_upm_woocommerce() {
     return Sp_Upm_WooCommerce::get_instance();
 }

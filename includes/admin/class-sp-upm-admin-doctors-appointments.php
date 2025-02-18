@@ -837,7 +837,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
     public function get_consultation_item($user_id, $treatment_id, $status) {
         global $wpdb;
-    
+
         // Determine the format of the status condition
         if (is_array($status)) {
             $placeholders = implode(',', array_fill(0, count($status), '%d'));
@@ -847,7 +847,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
             $status_condition = "AND status = %d";
             $query_params = [$this->table_name, $user_id, $treatment_id, $status];
         }
-    
+
         // Prepare the query
         $query = $wpdb->prepare(
             "SELECT
@@ -871,7 +871,7 @@ class Sp_Upm_Admin_Doctors_Appointments {
             LIMIT 1",
             ...$query_params
         );
-    
+
         return $wpdb->get_row($query, ARRAY_A);
     }
 
@@ -1154,8 +1154,4 @@ class Sp_Upm_Admin_Doctors_Appointments {
 
         return self::$instance;
     }
-}
-
-function sp_upm_doctors_appointments() {
-    return Sp_Upm_Admin_Doctors_Appointments::get_instance();
 }

@@ -65,7 +65,8 @@ class Sp_Upm_Starter_Kit
                     'product' => get_sub_field(self::$sf_product_key),
                     'heading' => get_sub_field(self::$sf_heading_key),
                     'custom_price' => get_sub_field(self::$sf_custom_price),
-                    'columns' => get_sub_field(self::$sf_no_of_columns)
+                    'columns' => get_sub_field(self::$sf_no_of_columns),
+                    'required_on_initial' => get_sub_field('required_only_on_initial_purchase')
                 ]);
 
             endwhile;
@@ -162,8 +163,4 @@ class Sp_Upm_Starter_Kit
 
         return self::$instance;
     }
-}
-
-function sp_upm_starter_kit() {
-    return Sp_Upm_Starter_Kit::get_instance();
 }

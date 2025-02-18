@@ -23,15 +23,19 @@
     }
 ?>
 <?php if ($consultation) : ?>
-<div class="sp-content-summary">
-	<?php
-		$treatment_id = get_field('treatment_category', $consultation->get_id());
-		$treatment = get_term_by('id', $treatment_id, 'product_cat');
-		$prescreening_form_page = get_field('category_wp_form_url', 'product_cat_' . $treatment_id);
+<?php
+    $treatment_id = get_field('treatment_category', $consultation->get_id());
+    $treatment = get_term_by('id', $treatment_id, 'product_cat');
+    $prescreening_form_page = get_field('category_wp_form_url', 'product_cat_' . $treatment_id);
 
-		$prescreening_form_id = get_field('category_wp_form', 'product_cat_' . $treatment_id);
-		$booking_form = get_field('consultation_booking_form', 'product_cat_' . $treatment_id);
-	?>
+    $prescreening_form_id = get_field('category_wp_form', 'product_cat_' . $treatment_id);
+    $booking_form = get_field('consultation_booking_form', 'product_cat_' . $treatment_id);
+    $purchased_times = sp_upm_weightloss()::get_wl_purchased_times();
+    $is_wl_return_consult = sp_upm_weightloss()::is_weight_loss($treatment_id) && $purchased_times > 0;
+
+    if (!$is_wl_return_consult) :
+?>
+<div class="sp-content-summary">
 	<h4>Proceed to <?php echo $treatment->name; ?> pre-screening-form:</h4>
 
 	<div class="sp-content-summary__actions">
@@ -47,4 +51,7 @@
 		</form>
 	</div>
 </div>
+<?php else : ?>
+    <div hidden>Proceed to</div>
+<?php endif; ?>
 <?php endif; ?>
